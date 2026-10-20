@@ -33,18 +33,20 @@
  *   .react cek             -> lihat setting saat ini
  *
  * Cara kerja status:
- *  - hanya status (status@broadcast), skip fromMe + reaction + protocol
+ *  - status pribadi (status@broadcast) + SW grup (status yang diposting ke
+ *    grup, bisa dimatikan via .swgrup off), skip fromMe + reaction + protocol
  *  - mode emoji: kirim 1 emoji (acak dari pool, atau urut giliran)
  *  - mode teks: kirim tiap teks berurutan (pisah pakai |, max 15, jeda 1 dtk)
  *    persis seperti readsw (countdown + teks semangat).
- *  - react dikirim via status@broadcast + statusJidList, sama seperti readsw.
+ *  - react pribadi via status@broadcast + statusJidList; react SW grup ke
+ *    JID grup langsung tanpa statusJidList — sama seperti readsw.
  *  - dedup: 1 status cuma di-react 1x (1x set teks = 1x dihitung).
  *
  * Command hanya dari owner (pesan fromMe) — biar orang lain tidak bisa
  * ubah setting bot dari chat.
  */
 import { jidNormalizedUser } from 'baileys';
-import { readConfig, writeConfig, extractEmojis, getMessageText } from '../helper/config.js';
+import { readConfig, writeConfig, extractEmojis, getMessageText, isGroupStatus, getGroupStatusInner } from '../helper/config.js';
 
 // Dedup react per status.
 const reactedIds = new Set();
@@ -77,6 +79,7 @@ function cekText(cfg) {
 	return (
 		`⚙️ *Setting Auto React*\n\n` +
 		`• Auto react: *${cfg.autoreact ? 'ON ✅' : 'OFF ❌'}*\n` +
+		`• SW grup: *${cfg.swgrup ? 'ON ✅' : 'OFF ❌'}*\n` +
 		`• Mode: *${mode}*\n` +
 		`• Emoji: ${pool}\n` +
 		`• Emoji acak: *${cfg.react_random ? 'ON (acak)' : 'OFF (urut)'}*\n` +
@@ -191,14 +194,19 @@ export default {
 		// Command dulu (dari owner) — berlaku di chat mana pun.
 		if (await handleCommand(sock, msg)) return;
 
-		// === AUTO REACT STATUS ===
-		if (msg.key?.remoteJid !== 'status@broadcast') return;
+		// === AUTO REACT STATUS (pribadi + SW grup) ===
+		const grup = isGroupStatus(msg);
+		const pribadi = msg.key?.remoteJid === 'status@broadcast';
+		if (!pribadi && !grup) return;
 		if (msg.key.fromMe) return;
 		if (msg.message?.reactionMessage) return;
 		if (msg.message?.protocolMessage) return;
+		const inner = grup ? getGroupStatusInner(msg) : null;
+		if (inner?.reactionMessage || inner?.protocolMessage) return;
 
 		const cfg = readConfig();
 		if (!cfg.autoreact) return;
+		if (grup && !cfg.swgrup) return;
 		if (reactedIds.has(msg.key.id)) return;
 
 		// FIX: pakai jidNormalizedUser (bawaan Baileys), JANGAN ubah server jadi
@@ -208,6 +216,11 @@ export default {
 		// Ini persis cara readsw kirim react (jidNormalizedUser).
 		const sender = jidNormalizedUser(msg.participant || msg.key.participant || '');
 		const ownJid = jidNormalizedUser(sock.user?.id || '');
+		// Target react: pribadi -> 'status@broadcast' + statusJidList.
+		// SW grup -> JID grup langsung, react grup biasa (tanpa statusJidList).
+		const reactTarget = grup ? msg.key.remoteJid : 'status@broadcast';
+		const reactOpts = grup ? {} : { statusJidList: [ownJid, sender] };
+		const jenis = grup ? 'SW grup' : 'status';
 
 		try {
 			if (cfg.react_mode === 'teks' && cfg.react_text.trim()) {
@@ -219,24 +232,16 @@ export default {
 					.slice(0, 15);
 				if (!parts.length) return;
 				for (let i = 0; i < parts.length; i++) {
-					await sock.sendMessage(
-						'status@broadcast',
-						{ react: { key: msg.key, text: parts[i] } },
-						{ statusJidList: [ownJid, sender] }
-					);
+					await sock.sendMessage(reactTarget, { react: { key: msg.key, text: parts[i] } }, reactOpts);
 					if (i < parts.length - 1) await delay(1000);
 				}
-				console.log(`[auto-lihat-status] react teks: status dari ${sender.split('@')[0]} (${parts.length} teks)`);
+				console.log(`[auto-lihat-status] react teks: ${jenis} dari ${sender.split('@')[0]} (${parts.length} teks)`);
 			} else {
 				// Mode emoji: kirim 1 emoji.
 				const emoji = pickEmoji(cfg);
 				if (!emoji) return;
-				await sock.sendMessage(
-					'status@broadcast',
-					{ react: { key: msg.key, text: emoji } },
-					{ statusJidList: [ownJid, sender] }
-				);
-				console.log(`[auto-lihat-status] react emoji ${emoji}: status dari ${sender.split('@')[0]}`);
+				await sock.sendMessage(reactTarget, { react: { key: msg.key, text: emoji } }, reactOpts);
+				console.log(`[auto-lihat-status] react emoji ${emoji}: ${jenis} dari ${sender.split('@')[0]}`);
 			}
 			reactedIds.add(msg.key.id);
 			if (reactedIds.size > 1000) {

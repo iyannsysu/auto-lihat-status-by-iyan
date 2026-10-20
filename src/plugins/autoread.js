@@ -21,24 +21,28 @@
 ///
 'use strict';
 /**
- * plugins/autoread.js — AUTO-LIHAT STATUS + command .read / .help.
+ * plugins/autoread.js — AUTO-LIHAT STATUS + command .read / .swgrup.
  *
  * Logika diambil dari readsw (handler/event.js + swconfig.js):
- *  - hanya status (remoteJid === 'status@broadcast'), bukan chat / grup
+ *  - status pribadi (remoteJid === 'status@broadcast')
+ *  - SW grup: status yang diposting ke grup (remoteJid @g.us, dibungkus
+ *    groupStatusMessage/V2) ikut dibaca — bisa dimatikan via .swgrup off
  *  - skip status sendiri (fromMe) & reactionMessage (anti-loop)
- *  - skip protocolMessage (revoke, dll)
+ *  - skip protocolMessage (revoke, dll), termasuk yang di dalam bungkus SW grup
  *  - tandai dibaca via sock.readMessages() — di Baileys ini =
  *    fetchPrivacySettings + sendReceipts([key], 'read' | 'read-self')
  *  - dedup: WA bisa kirim status yang sama 2x
+ *  - chat grup biasa BUKAN SW grup tetap diabaikan total.
  *
  * Command (simple, hanya dari owner / fromMe):
- *   .read on / .read off  -> nyalain / matiin auto-lihat status
- *   .help / .menu         -> daftar semua perintah bot
+ *   .read on / .read off    -> nyalain / matiin auto-lihat status
+ *   .swgrup on / .swgrup off -> nyalain / matiin proses SW grup
+ *   (.menu / .help ditangani plugin menu.js)
  *
  * Interface plugin:
  *  { name, desc, onMessage(ctx) } — ctx = { sock, msg, config }
  */
-import { writeConfig, getMessageText } from '../helper/config.js';
+import { writeConfig, getMessageText, isGroupStatus, getGroupStatusInner } from '../helper/config.js';
 
 // Dedup per-plugin: jangan kirim receipt dobel untuk status yang sama.
 const seenStatusIds = new Set();
@@ -68,24 +72,19 @@ async function handleCommand(sock, msg) {
 		return true;
 	}
 
-	// .help / .menu — daftar perintah (ditaruh di sini biar 1 tempat)
-	m = text.match(/^[./!](help|menu|bantuan)\b/i);
+	// .swgrup on / off — SW grup (status yang diposting ke grup) ikut diproses atau tidak
+	m = text.match(/^[./!](swgrup|swgroup|grupsw)\b(.*)$/is);
 	if (m) {
-		await reply(
-			sock,
-			msg,
-			`🤖 *AUTO LIHAT STATUS BY IYAN — perintah simple*\n\n` +
-				`*LIHAT STATUS*\n` +
-				`• \`.read on\` / \`.read off\` — nyalain / matiin auto-lihat\n\n` +
-				`*REACT STATUS*\n` +
-				`• \`.react on\` / \`.react off\` — nyalain / matiin auto react\n` +
-				`• \`.react emoji ❤️ 🔥\` — pakai emoji + set daftarnya\n` +
-				`• \`.react teks SEMANGAT!\` — pakai teks + set teksnya\n` +
-				`• \`.react teks off\` — balik ke mode emoji\n` +
-				`• \`.react acak on/off\` — emoji acak / urut\n` +
-				`• \`.react cek\` — lihat setting react\n\n` +
-				`Ketik \`.react\` doang untuk bantuan react.`
-		);
+		const arg = (m[2] || '').trim().toLowerCase();
+		if (arg === 'on' || arg === '1' || arg === 'ya' || arg === 'nyala') {
+			writeConfig({ swgrup: true });
+			await reply(sock, msg, 'SW grup sekarang *ON ✅* — status yang diposting ke grup ikut dibaca & di-react.');
+		} else if (arg === 'off' || arg === '0' || arg === 'tidak' || arg === 'mati') {
+			writeConfig({ swgrup: false });
+			await reply(sock, msg, 'SW grup sekarang *OFF ❌* — hanya status pribadi yang diproses.');
+		} else {
+			await reply(sock, msg, `Pakai: \`.swgrup on\` atau \`.swgrup off\``);
+		}
 		return true;
 	}
 
@@ -94,7 +93,7 @@ async function handleCommand(sock, msg) {
 
 export default {
 	name: 'autoread',
-	desc: 'Tandai status (story) orang sebagai dibaca, otomatis. Command: .read on/off, .help.',
+	desc: 'Tandai status (story) orang sebagai dibaca, otomatis — termasuk SW grup. Command: .read on/off, .swgrup on/off.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -102,26 +101,39 @@ export default {
 		// Command dulu (dari owner).
 		if (await handleCommand(sock, msg)) return;
 
-		// 1. Hanya status, bukan chat / grup.
-		if (msg.key?.remoteJid !== 'status@broadcast') return;
-		// 2. Skip status sendiri.
+		// 1. Hanya status pribadi atau SW grup. Chat biasa (termasuk chat grup) diabaikan.
+		const grup = isGroupStatus(msg);
+		const pribadi = msg.key?.remoteJid === 'status@broadcast';
+		if (!pribadi && !grup) return;
+		// 2. SW grup hanya diproses kalau dinyalakan (.swgrup).
+		if (grup && !ctx.config?.swgrup) return;
+		// 3. Skip status sendiri.
 		if (msg.key.fromMe) return;
-		// 3. Skip reaction (react balasan bisa balik sebagai "status" -> loop).
+		// 4. Skip reaction (react balasan bisa balik sebagai "status" -> loop),
+		//    termasuk reaction yang dibungkus di dalam SW grup.
 		if (msg.message?.reactionMessage) return;
-		// 4. Skip protocol message (revoke, dll).
+		const inner = grup ? getGroupStatusInner(msg) : null;
+		if (inner?.reactionMessage) return;
+		// 5. Skip protocol message (revoke, dll), termasuk di dalam bungkus SW grup.
 		if (msg.message?.protocolMessage) return;
-		// 5. Config live dari disk (on/off tanpa restart).
+		if (inner?.protocolMessage) return;
+		// 6. Config live dari disk (on/off tanpa restart).
 		if (!ctx.config?.autoread) return;
-		// 6. Dedup.
+		// 7. Dedup.
 		if (seenStatusIds.has(msg.key.id)) return;
 		seenStatusIds.add(msg.key.id);
 		if (seenStatusIds.size > 1000) {
 			for (const id of [...seenStatusIds].slice(0, 500)) seenStatusIds.delete(id);
 		}
 
-		// 7. Tandai dibaca.
+		// 8. Tandai dibaca (key apa adanya — sama seperti readsw sendReceipts([key])).
 		await sock.readMessages([msg.key]);
 		const sender = (msg.participant || msg.key.participant || '').split('@')[0] || '?';
-		console.log(`[auto-lihat-status] dibaca: status dari ${sender} (${msg.key.id})`);
+		if (grup) {
+			const grupId = (msg.key.remoteJid || '').split('@')[0];
+			console.log(`[auto-lihat-status] dibaca: SW grup dari ${sender} (grup ${grupId})`);
+		} else {
+			console.log(`[auto-lihat-status] dibaca: status dari ${sender} (${msg.key.id})`);
+		}
 	},
 };

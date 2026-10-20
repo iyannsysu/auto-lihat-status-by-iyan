@@ -8,7 +8,7 @@
     "pino": "^9.6.0",
     "qrcode-terminal": "^0.12.0"
   },
-  "description": "⚡ AUTO LIHAT STATUS BY IYAN — Bot WhatsApp dari nol, super-ringan. Dua misi: status auto-kebaca + auto-react (emoji / teks). Mesin autoread + autoreact warisan readsw. Atur via command simple: .read, .react, .help. Bersih, cepat, tanpa drama.",
+  "description": "⚡ AUTO LIHAT STATUS BY IYAN — Bot WhatsApp dari nol, super-ringan. Misi: status auto-kebaca + auto-react (emoji / teks), termasuk SW grup. Menu foto bergaya bot MD. Atur via command simple: .menu, .read, .swgrup, .react. Bersih, cepat, tanpa drama.",
   "license": "UNLICENSED",
   "main": "./src/index.js",
   "name": "auto-lihat-status-by-iyan",

@@ -18,7 +18,9 @@ Struktur **plugin** — tiap fitur 1 file, gampang nambah.
 
 ## Yang dilakukan bot ini
 - **Auto-lihat status** 👁️: setiap ada status baru (`status@broadcast`), bot tandai **dibaca** via `readMessages()` (= `sendReceipts` + `read`/`read-self` sesuai privasi akun, persis seperti readsw).
+- **SW grup** 👥: status yang diposting **ke grup** (dibungkus `groupStatusMessage/V2`) ikut dibaca + di-react juga — react dikirim ke JID grup langsung, seperti di readsw. Bisa dimatikan via `.swgrup off`. Chat grup biasa tetap diabaikan total.
 - **Auto-react status** 😍: setiap status di-react otomatis — mode **emoji** (1 emoji, acak / urut) atau mode **teks** (teks berurutan, pisah pakai `|`, jeda 1 dtk — persis seperti readsw).
+- **Menu foto** 🖼️: `.menu` mengirim foto banner + daftar perintah bergaya bot MD profesional, status ON/OFF-nya live dari config.
 - Skip status sendiri + reaction (anti-loop). Dedup: 1 status cuma dibaca + di-react 1x.
 - Config dibaca dari disk tiap status → on/off tanpa restart. Atau atur lewat command (lihat bawah).
 
@@ -35,12 +37,18 @@ Reply, forward ke Telegram/WA, status saver, anti-delete, story, bio, jadibot. N
 ## Perintah — SIMPLE, mudah diingat
 Semua perintah dikirim **dari akun bot sendiri** (pesan fromMe, di chat mana pun). Prefix boleh `.` `/` `!` — contoh pakai `.`.
 
+**Umum:**
+| Perintah | Artinya |
+|---|---|
+| `.menu` | Menu utama: foto banner + daftar perintah (alias `.help` / `.bantuan`) |
+
 **Lihat status:**
 | Perintah | Artinya |
 |---|---|
 | `.read on` | Nyalain auto-lihat |
 | `.read off` | Matiin auto-lihat |
-| `.help` | Daftar semua perintah |
+| `.swgrup on` | SW grup ikut dibaca + di-react |
+| `.swgrup off` | SW grup tidak diproses (hanya status pribadi) |
 
 **React status (yang utama):**
 | Perintah | Artinya |
@@ -63,7 +71,7 @@ Semua perintah dikirim **dari akun bot sendiri** (pesan fromMe, di chat mana pun
 ## On / off tanpa restart (cara lain)
 Edit `config.json` langsung, tanpa restart:
 ```json
-{ "autoread": true, "autoreact": true, "react_mode": "emoji",
+{ "autoread": true, "swgrup": true, "autoreact": true, "react_mode": "emoji",
   "emoji_pool": ["❤️","😍","🔥"], "react_random": true, "react_text": "" }
 ```
 - `react_mode: "teks"` + `react_text: "SEMANGAT"` → mode teks. Kosongkan `react_text` untuk balik ke emoji.
@@ -75,8 +83,9 @@ Edit `config.json` langsung, tanpa restart:
 - `src/index.js` — entry point, HANYA bootstrap: konek WA + load plugin + teruskan pesan ke plugin. Tanpa logika fitur.
 - `src/helper/config.js` — baca + tulis `config.json` dari disk.
 - `src/plugins/_loader.js` — pemuat plugin (scan `plugins/*.js`, validasi `{ name, onMessage }`).
-- `src/plugins/autoread.js` — fitur: auto-lihat status + command `.read` / `.help`.
+- `src/plugins/autoread.js` — fitur: auto-lihat status + SW grup + command `.read` / `.swgrup`.
 - `src/plugins/autoreact.js` — fitur: auto-react status (emoji + teks) + command `.react`.
+- `src/plugins/menu.js` — fitur: `.menu` / `.help` foto banner bergaya bot MD (foto dari `assets/menu.jpg`; tanpa foto, menu terkirim sebagai teks).
 - `scripts/make-plugin.js` — **pembuat plugin baru**.
 - `config.json` — setting bot (autoread, autoreact, emoji, teks, dll).
 - `run.sh` — supervisor (flock + auto-restart)

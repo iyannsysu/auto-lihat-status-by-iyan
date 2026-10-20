@@ -36,7 +36,10 @@
  *  src/index.js              <- file ini (bootstrap)
  *  src/helper/config.js      <- baca config.json
  *  src/plugins/_loader.js    <- pemuat plugin
- *  src/plugins/autoread.js   <- fitur: auto-lihat status (satu-satunya)
+ *  src/plugins/autoread.js   <- fitur: auto-lihat status + SW grup
+ *  src/plugins/autoreact.js  <- fitur: auto-react status (emoji / teks)
+ *  src/plugins/menu.js       <- fitur: .menu foto bergaya bot MD
+ *  assets/menu.jpg           <- foto banner untuk .menu
  *  scripts/make-plugin.js    <- pembuat plugin baru
  */
 

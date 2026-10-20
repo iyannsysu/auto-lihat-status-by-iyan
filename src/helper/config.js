@@ -27,6 +27,7 @@
  * config.json:
  * {
  *   "autoread": true,            // auto-lihat status
+ *   "swgrup": true,              // SW grup (status yang diposting ke grup) ikut diproses
  *   "autoreact": true,           // auto-react status
  *   "react_mode": "emoji",       // "emoji" | "teks"
  *   "emoji_pool": ["❤️","😍","🔥","👍","😮","🥰","💯","👏","😎","🎉"],
@@ -41,6 +42,7 @@ const CONFIG_FILE = path.join(process.cwd(), 'config.json');
 
 const DEFAULTS = {
 	autoread: true,
+	swgrup: true,
 	autoreact: true,
 	react_mode: 'emoji',
 	emoji_pool: ['❤️', '😍', '🔥', '👍', '😮', '🥰', '💯', '👏', '😎', '🎉'],
@@ -65,6 +67,7 @@ export function writeConfig(patch) {
 
 function normalize(cfg) {
 	if (typeof cfg.autoread !== 'boolean') cfg.autoread = true;
+	if (typeof cfg.swgrup !== 'boolean') cfg.swgrup = true;
 	if (typeof cfg.autoreact !== 'boolean') cfg.autoreact = true;
 	if (cfg.react_mode !== 'teks' && cfg.react_mode !== 'emoji') cfg.react_mode = 'emoji';
 	if (!Array.isArray(cfg.emoji_pool) || !cfg.emoji_pool.length) cfg.emoji_pool = [...DEFAULTS.emoji_pool];
@@ -93,6 +96,24 @@ export function extractEmojis(text) {
 		const found = src.match(/\p{Extended_Pictographic}/gu) || [];
 		return [...new Set(found)];
 	}
+}
+
+/**
+ * SW grup: status yang diposting ke grup datang dari JID grup (@g.us),
+ * BUKAN status@broadcast, dan isinya dibungkus groupStatusMessage /
+ * groupStatusMessageV2. Fungsi ini mengembalikan pesan di dalam bungkusnya
+ * (atau null kalau bukan SW grup) — pola sama seperti readsw
+ * (helper/inject.js: isGroupStatus dideteksi dari pesan mentah).
+ */
+export function getGroupStatusInner(msg) {
+	const m = msg?.message || {};
+	const wrapped = m.groupStatusMessageV2 || m.groupStatusMessage;
+	return wrapped?.message || null;
+}
+
+/** True kalau pesan ini adalah status yang diposting ke grup (SW grup). */
+export function isGroupStatus(msg) {
+	return String(msg?.key?.remoteJid || '').endsWith('@g.us') && !!getGroupStatusInner(msg);
 }
 
 /** Ambil teks pesan (chat / caption / command). */
