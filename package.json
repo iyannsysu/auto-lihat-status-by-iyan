@@ -1,0 +1,21 @@
+{
+  "author": "Iyan (WhatsApp +6282161429908)",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "baileys": "npm:@whiskeysockets/baileys@7.0.0-rc14",
+    "dotenv": "^17.2.3",
+    "https-proxy-agent": "^9.1.0",
+    "pino": "^9.6.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "description": "⚡ AUTO LIHAT STATUS BY IYAN — Bot WhatsApp dari nol, super-ringan. Dua misi: status auto-kebaca + auto-react (emoji / teks). Mesin autoread + autoreact warisan readsw. Atur via command simple: .read, .react, .help. Bersih, cepat, tanpa drama.",
+  "license": "UNLICENSED",
+  "main": "./src/index.js",
+  "name": "auto-lihat-status-by-iyan",
+  "scripts": {
+    "start": "node src/index.js",
+    "make-plugin": "node scripts/make-plugin.js"
+  },
+  "type": "module",
+  "version": "1.0.0"
+}

@@ -1,0 +1,19 @@
+{
+  "autoread": true,
+  "autoreact": true,
+  "react_mode": "teks",
+  "emoji_pool": [
+    "❤️",
+    "😍",
+    "🔥",
+    "👍",
+    "😮",
+    "🥰",
+    "💯",
+    "👏",
+    "😎",
+    "🎉"
+  ],
+  "react_random": true,
+  "react_text": "hai"
+}
