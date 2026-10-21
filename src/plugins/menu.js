@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 149\n` +
+		`┃ ⌨️ *Total Cmd :* 158\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -152,6 +152,9 @@ function menuText(cfg) {
 		`┃ • \`.fact\` \`.roast\` \`.ship\` \`.jodoh\`\n` +
 		`┃ • \`.cantik\` \`.ganteng\` \`.jodohku\` — acak di grup\n` +
 		`┃ • \`.rating\` — penilaian anggota grup\n` +
+		`┃ • \`.khodam\` \`.siapakah\` \`.undian\`\n` +
+		`┃ • \`.truth\` \`.dare\` \`.bisakah\` \`.hoki\`\n` +
+		`┃ • \`.pantun\` \`.artinama\`\n` +
 		`┃ • \`.reaction\` — react pesan orang (reply)\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +

@@ -122,7 +122,7 @@ function jodohCard(a, b, judul = 'CEK JODOH', keyA = a, keyB = b) {
 
 export default {
 	name: 'fun',
-	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, jodohku, kapan, cantik/ganteng acak grup, reaction.',
+	desc: 'Fun: dadu, koin, suit, cek, seberapa, kapan, fact, roast, ship, jodoh, jodohku, khodam, siapakah, truth/dare, bisakah, hoki, pantun, artinama, undian, rating, cantik/ganteng acak grup, reaction.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -244,6 +244,155 @@ export default {
 			const a = msg.pushName || 'Kamu';
 			const card = jodohCard(a, `@${digits(pick)}`, 'JODOHKU', digits(meJid), digits(pick));
 			return sock.sendMessage(chatJid, { text: card + '\n\n_(dipilih acak oleh Cupid Bot 🏹 — kurang cocok? panggil lagi aja)_', mentions: [pick] }, { quoted: msg });
+		}
+		if (cmd === 'khodam') {
+			const KHODAM = [
+				{ n: 'Macan Kumbang', e: '🐆', s: 'pendiam tapi sekali bergerak semua minggir' },
+				{ n: 'Naga Emas', e: '🐉', s: 'bawaan rezeki, auranya mahal' },
+				{ n: 'Harimau Putih', e: '🐅', s: 'disegani tanpa perlu banyak bicara' },
+				{ n: 'Garuda Api', e: '🦅', s: 'ambisinya membara, susah dikendalikan' },
+				{ n: 'Kucing Oren', e: '🐈', s: 'bar-bar tapi ngangenin, sumber keramaian' },
+				{ n: 'Elang Jawa', e: '🦅', s: 'penglihatannya tajam soal peluang' },
+				{ n: 'Buaya Darat', e: '🐊', s: 'rayuannya maut, hati-hati yang dekat' },
+				{ n: 'Kancil Sakti', e: '🦌', s: 'kecil-kecil otaknya encer, selalu lolos' },
+				{ n: 'Ular Sanca Emas', e: '🐍', s: 'sabar menunggu momen yang tepat' },
+				{ n: 'Ayam Cemani', e: '🐓', s: 'langka dan penuh misteri' },
+				{ n: 'Banteng Merah', e: '🐂', s: 'keras kepala, pantang mundur' },
+				{ n: 'Kelelawar Malam', e: '🦇', s: 'anak malam, otaknya nyala pas begadang' },
+				{ n: 'Kura-kura Bijak', e: '🐢', s: 'lambat di luar, menang di akhir' },
+				{ n: 'Katak Pembawa Hujan', e: '🐸', s: 'datang selalu bawa kabar tak terduga' },
+				{ n: 'Singa Padang Pasir', e: '🦁', s: 'jiwa pemimpin, tidur pun tetap berwibawa' },
+				{ n: 'Rusa Emas', e: '🦌', s: 'anggun, tapi larinya nggak terkejar' },
+				{ n: 'Tupai Lincah', e: '🐿️', s: 'nggak bisa diam, idenya lompat-lompat' },
+				{ n: 'Kerbau Bule', e: '🐃', s: 'pekerja keras, setia kawan' },
+				{ n: 'Kecoa Terbang', e: '🪳', s: 'muncul selalu di saat paling nggak terduga' },
+				{ n: 'Sendal Jepit Sakti', e: '🩴', s: 'sederhana, tapi hilang satu dunia heboh' },
+			];
+			const k = KHODAM[stablePercent('khodam|' + senderNum, KHODAM.length - 1)];
+			const power = 40 + stablePercent('khodampw|' + senderNum, 60);
+			return reply(`👁️ *CEK KHODAM*\n\nKhodam pendamping *${msg.pushName || 'kamu'}*:\n\n${k.e} *${k.n}*\n💪 Kekuatan: *${power}%*\n✨ Sifat: ${k.s}\n\n_(khodam ini tetap — sudah terikat sejak lahir 😌)_`);
+		}
+		if (cmd === 'siapakah') {
+			if (!chatJid.endsWith('@g.us')) return reply('Command `.siapakah` cuma bisa di grup 😄');
+			const q = args.replace(/\?+$/, '').trim();
+			if (!q) return reply('Pakai: `.siapakah yang paling jomblo` / `.siapakah yang bakal kaya duluan`');
+			let meta;
+			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
+			const botDigits = String(sock.user?.id || '').split('@')[0].split(':')[0];
+			const members = (await memberJids(sock, meta)).filter(j => j.split('@')[0] !== botDigits);
+			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
+			const pick = members[Math.floor(Math.random() * members.length)];
+			return sock.sendMessage(chatJid, { text: `🤔 *SIAPAKAH ${q.toUpperCase()}?*\n\nSetelah bot menerawang satu grup penuh...\n\nJawabannya: @${pick.split('@')[0]} 🎯\n\n_(dipilih acak — yang kepilih jangan baper 😆)_`, mentions: [pick] }, { quoted: msg });
+		}
+		if (cmd === 'truth' || cmd === 'dare') {
+			const TRUTH = [
+				'Siapa orang terakhir yang kamu stalking di media sosial? Ngaku!',
+				'Pesan apa yang pernah kamu hapus sebelum terkirim, dan buat siapa?',
+				'Kapan terakhir kali kamu nangis, dan karena apa?',
+				'Siapa di grup ini yang diam-diam kamu kagumi? Sebut nama!',
+				'Kebohongan terakhir yang kamu ucapkan itu apa?',
+				'Foto paling aib di galerimu itu foto apa? Ceritakan!',
+				'Siapa kontak yang paling sering kamu chat diam-diam?',
+				'Hal paling memalukan yang pernah kamu lakukan di depan umum?',
+				'Kalau bisa menghapus satu chat selamanya, chat dengan siapa?',
+				'Siapa mantan yang masih sesekali kamu kepoin?',
+				'Rahasia kecil apa yang belum pernah kamu ceritakan ke siapa pun di grup ini?',
+				'Kapan terakhir kali kamu pura-pura sibuk biar nggak diajak keluar?',
+				'Apa kebiasaan anehmu yang orang lain belum tahu?',
+				'Siapa guru/dosen yang paling kamu sebelin dulu, kenapa?',
+			];
+			const DARE = [
+				'Kirim voice note nyanyi lagu anak-anak sekarang juga!',
+				'Chat kontak terakhirmu: "aku kangen" — tanpa konteks apa pun.',
+				'Ganti foto profilmu jadi foto paling aib selama 10 menit!',
+				'Ketik pesan berikutnya TANPA huruf vokal selama 5 menit.',
+				'Puji admin grup dengan pantun buatan sendiri, sekarang!',
+				'Kirim stiker/emoji yang sama ke 5 chat teratasmu.',
+				'Bilang "aku sayang kalian" pakai voice note di grup ini.',
+				'Tulis status WA: "hari ini aku merasa sangat tampan/cantik" — biarkan 30 menit.',
+				'Tirukan suara hewan yang dipilih orang setelahmu.',
+				'Jangan pakai emoji sama sekali selama 15 menit ke depan.',
+				'Ceritakan mimpi terakhirmu semalam, sedetail mungkin.',
+				'Kirim foto makanan terakhir yang kamu makan. Sekarang.',
+				'Reply semua pesan di grup ini pakai kata "siap bos" selama 10 menit.',
+				'Buat puisi 4 baris tentang orang yang duduk (di daftar anggota) di atasmu.',
+			];
+			const pool = cmd === 'truth' ? TRUTH : DARE;
+			const pick = pool[Math.floor(Math.random() * pool.length)];
+			return reply(cmd === 'truth' ? `🤫 *TRUTH*\n\n${pick}` : `🔥 *DARE*\n\n${pick}\n\n_(nggak boleh nolak ya 😏)_`);
+		}
+		if (cmd === 'bisakah') {
+			const JAWAB = ['Bisa banget! Gas! 💪', 'Pasti bisa. Percaya sama bot 😎', 'Kemungkinan besar: IYA ✨', 'Iya, tapi nggak sekarang. Sabar ya', 'Hmm... 50:50, tergantung usahamu 🤔', 'Kayaknya nggak deh 😅', 'Jangan terlalu berharap dulu ya', 'Bisa, asal kamu berani mulai', 'Menurut terawangan bot: BISA! 🔮', 'Nggak. Tapi plot twist selalu ada', 'Bisa banget — bahkan lebih cepat dari dugaanmu', 'Tanya lagi besok, bola kristalnya lagi ngantuk 😴'];
+			const q = args.toLowerCase().replace(/\?+$/, '').replace(/\s+/g, ' ').trim();
+			if (!q) return reply('Pakai: `.bisakah aku kaya tahun ini?` / `.bisakah dia balas chatku?`');
+			const ans = JAWAB[stablePercent(senderNum + '|bisakah|' + q, JAWAB.length - 1)];
+			return reply(`🎱 *BOLA RAMAL*\n\n❓ "Bisakah ${q}?"\n\n💬 ${ans}\n\n_(jawaban tetap buat pertanyaan yang sama 😌)_`);
+		}
+		if (cmd === 'hoki') {
+			const WARNA = ['Merah', 'Emas', 'Hijau Toska', 'Biru Langit', 'Ungu', 'Oranye', 'Pink', 'Hitam Elegan', 'Putih', 'Kuning Cerah'];
+			const SARAN = ['Hari yang bagus buat mulai hal yang tertunda.', 'Jauhi drama, dekatkan kopi.', 'Ada kabar baik dari arah yang nggak terduga.', 'Jangan pinjamkan uang hari ini. Serius.', 'Rezeki bisa datang dari chat yang belum dibalas.', 'Waktu yang tepat buat minta maaf duluan.', 'Fokus ke satu hal, jangan serakah hari ini.', 'Keberuntunganmu naik setelah makan enak.'];
+			const now = new Date(Date.now() + 7 * 3600 * 1000); // tanggal WIB
+			const tglKey = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+			const key = senderNum + '|hoki|' + tglKey;
+			const pct = stablePercent(key);
+			const bar = '▰'.repeat(Math.round(pct / 10)) + '▱'.repeat(10 - Math.round(pct / 10));
+			const warna = WARNA[stablePercent(key + '|w', WARNA.length - 1)];
+			const angka = 1 + stablePercent(key + '|a', 98);
+			const saran = SARAN[stablePercent(key + '|s', SARAN.length - 1)];
+			const label = pct >= 80 ? 'HOKI BESAR! 🍀🍀🍀' : pct >= 55 ? 'Lumayan hoki 🍀🍀' : pct >= 30 ? 'Biasa aja 🍀' : 'Lagi seret... hati-hati ya 🫠';
+			return reply(`🍀 *HOKI HARI INI*\n\n${bar}\nKeberuntungan: *${pct}%* — ${label}\n🎨 Warna hoki: *${warna}*\n🔢 Angka hoki: *${angka}*\n💡 ${saran}\n\n_(berlaku hari ini aja — besok cek lagi ya)_`);
+		}
+		if (cmd === 'pantun') {
+			const PANTUN = [
+				'Jalan-jalan ke Pasar Baru\nJangan lupa beli sepatu\nKalau kamu lagi rindu\nIngat aku selalu menunggu',
+				'Buah mangga buah pepaya\nDimakan enak di siang hari\nSenyummu manis sekali ya\nBikin hati berdebar tiap hari',
+				'Ke warteg beli nasi rendang\nNasinya habis tinggal kuah\nLihat kamu kok hati berdebar-debar\nTernyata dompetku yang hilang, ya Allah',
+				'Ikan hiu makan tomat\nTomatnya dibeli di toko Pak Haji\nAku janji nggak akan telat\nTelatnya cuma pas tanggal muda gaji',
+				'Burung perkutut burung kutilang\nKamu kentut aku yang hilang\nEh maaf salah pantun sayang\nMaksudku: kamu cantik, aku sayang',
+				'Naik delman ke kota tua\nDuduk di depan pak kusirnya\nKatanya cinta itu buta\nMakanya aku merem aja',
+				'Beli bakso pakai kuah\nKuahnya tumpah kena baju\nKalau hidup terasa susah\nIngat, tetangga lebih susah darimu',
+				'Pagi-pagi minum jamu\nJamunya pahit sekali\nDaripada mikirin masa lalu\nMending mikirin makan siang ini',
+				'Jalan-jalan ke Surabaya\nNaik kereta berdesak-desakan\nKamu itu jangan tanya\nKenapa aku sayang — nggak ada alasan!',
+				'Buah duku buah rambutan\nEnak dimakan sambil santai\nChat dibaca tapi nggak dibalas-balasan\nItu namanya di-ghosting, santai...',
+				'Ke pasar beli terasi\nTerasi dibungkus daun pisang\nGaji masuk tanggal satu pagi\nTanggal dua sudah tinggal kenangan',
+				'Anak ayam turun sepuluh\nMati satu tinggal sembilan\nHidup ini memang penuh keluh\nTapi tetap jalan, yang penting makan',
+			];
+			const p = PANTUN[Math.floor(Math.random() * PANTUN.length)];
+			return reply(`🎭 *PANTUN BUAT KAMU*\n\n${p.split('\n').join('\n')}\n\nCakeppp! 👏`);
+		}
+		if (cmd === 'artinama') {
+			const SIFAT = {
+				a: ['Ambisius', 'Asyik', 'Anggun'], b: ['Berani', 'Bijaksana', 'Bersahaja'], c: ['Cerdas', 'Ceria', 'Cekatan'],
+				d: ['Dermawan', 'Disiplin', 'Dinamis'], e: ['Energik', 'Elegan', 'Empati tinggi'], f: ['Fokus', 'Fleksibel', 'Fenomenal'],
+				g: ['Gigih', 'Gaul', 'Gemilang'], h: ['Humoris', 'Hangat', 'Hebat'], i: ['Imajinatif', 'Ikhlas', 'Inspiratif'],
+				j: ['Jujur', 'Jagoan', 'Jeli'], k: ['Kreatif', 'Kharismatik', 'Kuat'], l: ['Lucu', 'Lembut', 'Lincah'],
+				m: ['Mandiri', 'Menawan', 'Murah hati'], n: ['Nyaman diajak ngobrol', 'Nggak neko-neko', 'Nyeleneh positif'],
+				o: ['Optimis', 'Original', 'Objektif'], p: ['Percaya diri', 'Penyayang', 'Pintar'], q: ['Qonaah (mudah bersyukur)', 'Quality time lover'],
+				r: ['Rajin', 'Ramah', 'Romantis'], s: ['Setia', 'Sabar', 'Supel'], t: ['Tegas', 'Teliti', 'Tenang'],
+				u: ['Unik', 'Ulet', 'Utama'], v: ['Visioner', 'Vokal'], w: ['Wibawa', 'Welcoming', 'Waspada positif'],
+				x: ['Xtra berani', 'Xtra spesial'], y: ['Yakin', 'Yahud'], z: ['Zelos (bersemangat)', 'Zigzag kalau dikejar deadline'],
+			};
+			const nama = (args || msg.pushName || 'Kamu').trim().slice(0, 14);
+			const huruf = nama.toUpperCase().replace(/[^A-Z]/g, '');
+			if (!huruf) return reply('Pakai: `.artinama Budi` — atau `.artinama` buat namamu sendiri');
+			const lines = [...huruf].map(ch => {
+				const pool = SIFAT[ch.toLowerCase()] || ['Istimewa'];
+				const sifat = pool[stablePercent('artinama|' + nama.toLowerCase() + '|' + ch, pool.length - 1)];
+				return `*${ch}* = ${sifat}`;
+			});
+			return reply(`🔤 *ARTI NAMA: ${nama.toUpperCase()}*\n\n${lines.join('\n')}\n\n_(versi bot — positif semua, yang jelek-jeleknya disensor 😇)_`);
+		}
+		if (cmd === 'undian') {
+			if (!chatJid.endsWith('@g.us')) return reply('Command `.undian` cuma bisa di grup 🎲');
+			let meta;
+			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
+			const botDigits = String(sock.user?.id || '').split('@')[0].split(':')[0];
+			const members = (await memberJids(sock, meta)).filter(j => j.split('@')[0] !== botDigits);
+			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
+			const pick = members[Math.floor(Math.random() * members.length)];
+			await sock.sendMessage(chatJid, { text: `🎲 *UNDIAN ${args ? args.toUpperCase() : 'GRUP'}*\n\nMengocok ${members.length} nama...\n🎰🎰🎰` }, { quoted: msg });
+			await new Promise(r => setTimeout(r, 1200));
+			return sock.sendMessage(chatJid, { text: `🎉 *PEMENANG UNDIAN${args ? ' ' + args.toUpperCase() : ''}*\n\nSelamat kepada:\n🏆 @${pick.split('@')[0]} 🏆\n\nSah ya, hasil kocokan bot nggak bisa diganggu gugat 😄`, mentions: [pick] }, { quoted: msg });
 		}
 		if (cmd === 'rating' || cmd === 'penilaian') {
 			if (!chatJid.endsWith('@g.us')) return reply('Command `.rating` cuma bisa di grup — bot menilai semua anggota grupnya ⭐');
