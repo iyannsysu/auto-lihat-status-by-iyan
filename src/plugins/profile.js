@@ -79,6 +79,42 @@ function senderJid(sock, msg) {
 	return raw ? jidNormalizedUser(raw) : '';
 }
 
+// ---------- Resolusi LID -> nomor asli (PN) ----------
+// WhatsApp kini sering memakai LID (@lid) sebagai JID pengirim/target —
+// angka LID BUKAN nomor HP. Nomor asli didapat dari field *Alt di key
+// pesan (remoteJidAlt / participantAlt) atau pemetaan lidMapping Baileys.
+const pnCache = new Map(); // lid jid -> { pn: string|null, ts }
+function isLid(jid) { return typeof jid === 'string' && jid.endsWith('@lid'); }
+
+async function resolvePnJid(sock, msg, jid) {
+	if (!jid || !isLid(jid)) return jid;
+	// Jalur cepat dari key pesan (hanya bila target = pengirim pesan ini).
+	const key = msg?.key || {};
+	const senderRaw = msg?.key?.fromMe ? '' : jidNormalizedUser(key.participant || key.remoteJid || '');
+	if (jid === senderRaw) {
+		const alt = key.participantAlt || key.remoteJidAlt || '';
+		if (alt && !isLid(alt)) return jidNormalizedUser(alt);
+	}
+	const hit = pnCache.get(jid);
+	if (hit && (hit.pn || Date.now() - hit.ts < 5 * 60 * 1000)) return hit.pn || jid;
+	try {
+		const pn = await sock?.signalRepository?.lidMapping?.getPNForLID?.(jid);
+		pnCache.set(jid, { pn: pn ? jidNormalizedUser(pn) : null, ts: Date.now() });
+		if (pn) return jidNormalizedUser(pn);
+	} catch { /* pemetaan tidak tersedia — pakai JID apa adanya */ }
+	return jid;
+}
+
+/** Ambil data profil dgn kunci nomor asli; migrasi entri lama berkunci LID. */
+function dataFor(rawJid, pnJid) {
+	if (pnJid && pnJid !== rawJid && profiles[rawJid] && !profiles[pnJid]) {
+		profiles[pnJid] = profiles[rawJid];
+		delete profiles[rawJid];
+		saveProfiles();
+	}
+	return getProfile(pnJid || rawJid);
+}
+
 /** Target: @mention pertama, atau pengirim pesan yang di-reply, atau diri sendiri. */
 function targetJid(sock, msg) {
 	const c = msg.message?.extendedTextMessage?.contextInfo;
@@ -90,10 +126,12 @@ function targetJid(sock, msg) {
 function profileCard(jid, data, fallbackName) {
 	const belum = '_(belum diatur)_';
 	const lvl = levelFor(data.xp || 0);
+	const nomorLine = isLid(jid) ? '📱 Nomor : _(tersembunyi oleh privasi WhatsApp)_' : `📱 Nomor : +${jid.split('@')[0]}`;
+	const namaFallback = isLid(jid) ? 'Pengguna' : jid.split('@')[0];
 	return (
 		`👤 *PROFIL USER*\n\n` +
-		`📛 Nama : *${data.name || fallbackName || jid.split('@')[0]}*\n` +
-		`📱 Nomor : +${jid.split('@')[0]}\n` +
+		`📛 Nama : *${data.name || fallbackName || namaFallback}*\n` +
+		`${nomorLine}\n` +
 		`🚻 Gender : ${data.gender || belum}\n` +
 		`🎂 Umur : ${data.age ? `${data.age} tahun` : belum}\n` +
 		`📝 Bio : ${data.bio || belum}\n` +
@@ -116,9 +154,9 @@ export default {
 		if (!msg.key.fromMe && readConfig().mode !== 'public') return;
 		const raw = getMessageText(msg);
 		if (!raw) return;
-		// XP untuk obrolan biasa (bukan command).
+		// XP untuk obrolan biasa (bukan command) — disimpan per nomor asli.
 		if (!/^[./!]/.test(raw.trim())) {
-			try { awardXp(senderJid(sock, msg)); } catch { /* abaikan */ }
+			try { awardXp(await resolvePnJid(sock, msg, senderJid(sock, msg))); } catch { /* abaikan */ }
 			return;
 		}
 		const m = raw.match(/^[./!]([a-z0-9]+)\b([\s\S]*)$/i);
@@ -126,40 +164,42 @@ export default {
 		const cmd = m[1].toLowerCase();
 		const args = (m[2] || '').trim();
 		const chatJid = msg.key.remoteJid;
-		const me = senderJid(sock, msg);
+		const meRaw = senderJid(sock, msg);
+		const me = await resolvePnJid(sock, msg, meRaw);
+		const myData = () => dataFor(meRaw, me);
 		const reply = async text => sock.sendMessage(chatJid, { text }, { quoted: msg });
 
 		if (cmd === 'setname') {
 			if (!args) return reply('Pakai: `.setname Nama Kamu`');
-			getProfile(me).name = args.slice(0, 50);
-			getProfile(me).updatedAt = Date.now(); saveProfiles();
-			return reply(`✅ Nama profilmu sekarang: *${getProfile(me).name}*`);
+			myData().name = args.slice(0, 50);
+			myData().updatedAt = Date.now(); saveProfiles();
+			return reply(`✅ Nama profilmu sekarang: *${myData().name}*`);
 		}
 		if (cmd === 'setgender') {
 			const g = GENDERS[args.toLowerCase()];
 			if (!g) return reply('Pakai: `.setgender laki-laki` atau `.setgender perempuan`');
-			getProfile(me).gender = g; getProfile(me).updatedAt = Date.now(); saveProfiles();
+			myData().gender = g; myData().updatedAt = Date.now(); saveProfiles();
 			return reply(`✅ Gender profilmu: *${g}*`);
 		}
 		if (cmd === 'setage') {
 			const age = Number(args);
 			if (!Number.isInteger(age) || age < 5 || age > 100) return reply('Pakai: `.setage <umur>` — angka 5 sampai 100 ya.');
-			getProfile(me).age = age; getProfile(me).updatedAt = Date.now(); saveProfiles();
+			myData().age = age; myData().updatedAt = Date.now(); saveProfiles();
 			return reply(`✅ Umur profilmu: *${age} tahun*`);
 		}
 		if (cmd === 'setbio') {
 			if (!args) return reply('Pakai: `.setbio teks bio singkatmu`');
-			getProfile(me).bio = args.slice(0, 150); getProfile(me).updatedAt = Date.now(); saveProfiles();
+			myData().bio = args.slice(0, 150); myData().updatedAt = Date.now(); saveProfiles();
 			return reply('✅ Bio profilmu sudah diperbarui.');
 		}
 		if (cmd === 'level' || cmd === 'lvl') {
-			const data = getProfile(me);
+			const data = myData();
 			const lvl = levelFor(data.xp || 0);
 			const filled = Math.round(lvl.progress * 10);
 			const bar = '▰'.repeat(filled) + '▱'.repeat(10 - filled);
 			return reply(
 				`🏅 *LEVEL KAMU*\n\n` +
-					`👤 ${data.name || msg.pushName || me.split('@')[0]}\n` +
+					`👤 ${data.name || msg.pushName || (isLid(me) ? 'Pengguna' : me.split('@')[0])}\n` +
 					`⭐ Level : *${lvl.level}*\n` +
 					`✨ XP : ${data.xp || 0} / ${lvl.next} (menuju level ${lvl.level + 1})\n` +
 					`${bar} ${Math.round(lvl.progress * 100)}%\n\n` +
@@ -167,26 +207,31 @@ export default {
 			);
 		}
 		if (cmd === 'profile' || cmd === 'profil') {
-			const target = targetJid(sock, msg);
-			const data = getProfile(target);
-			const fallback = target === me ? msg.pushName || sock.user?.name : '';
+			const targetRaw = targetJid(sock, msg);
+			const target = await resolvePnJid(sock, msg, targetRaw);
+			const data = dataFor(targetRaw, target);
+			const fallback = targetRaw === meRaw ? msg.pushName || sock.user?.name : '';
 			const card = profileCard(target, data, fallback);
-			// Sertakan foto profil WA bila bisa diambil.
-			try {
-				const pp = await sock.profilePictureUrl(target, 'image');
-				if (pp) return sock.sendMessage(chatJid, { image: { url: pp }, caption: card, mentions: [target] }, { quoted: msg });
-			} catch { /* foto tidak ada / diprivasi — kirim teks saja */ }
-			return sock.sendMessage(chatJid, { text: card, mentions: [target] }, { quoted: msg });
+			// Sertakan foto profil WA bila bisa diambil (coba nomor asli, lalu JID asal).
+			for (const jidTry of [target, targetRaw]) {
+				try {
+					const pp = await sock.profilePictureUrl(jidTry, 'image');
+					if (pp) return sock.sendMessage(chatJid, { image: { url: pp }, caption: card, mentions: [targetRaw] }, { quoted: msg });
+				} catch { /* coba JID berikutnya */ }
+			}
+			return sock.sendMessage(chatJid, { text: card, mentions: [targetRaw] }, { quoted: msg });
 		}
 		if (cmd === 'getpp') {
-			const target = targetJid(sock, msg);
-			try {
-				const pp = await sock.profilePictureUrl(target, 'image');
-				if (!pp) throw new Error('kosong');
-				return sock.sendMessage(chatJid, { image: { url: pp }, caption: `📸 Foto profil @${target.split('@')[0]}`, mentions: [target] }, { quoted: msg });
-			} catch {
-				return reply(`📸 @${target.split('@')[0]} tidak memasang foto profil, atau fotonya diprivasi.`);
+			const targetRaw = targetJid(sock, msg);
+			const target = await resolvePnJid(sock, msg, targetRaw);
+			const label = isLid(target) ? 'pengguna ini' : `@${target.split('@')[0]}`;
+			for (const jidTry of [target, targetRaw]) {
+				try {
+					const pp = await sock.profilePictureUrl(jidTry, 'image');
+					if (pp) return sock.sendMessage(chatJid, { image: { url: pp }, caption: `📸 Foto profil ${label}`, mentions: [targetRaw] }, { quoted: msg });
+				} catch { /* coba JID berikutnya */ }
 			}
+			return reply(`📸 ${label} tidak memasang foto profil, atau fotonya diprivasi.`);
 		}
 	},
 };
