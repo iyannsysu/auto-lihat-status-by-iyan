@@ -70,7 +70,11 @@ function loadAfk() {
 
 function saveAfk() {
 	try {
-		fs.writeFileSync(AFK_FILE, JSON.stringify(Object.fromEntries(afkMap), null, 2) + '\n');
+		// Tulis atomik (file sementara + rename): kalau bot/VM mati di tengah
+		// penulisan, afk.json lama tidak ikut rusak — data AFK tetap aman.
+		const tmp = `${AFK_FILE}.tmp`;
+		fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(afkMap), null, 2) + '\n');
+		fs.renameSync(tmp, AFK_FILE);
 	} catch (err) {
 		console.error('[auto-lihat-status] gagal simpan afk.json:', err?.message || err);
 	}
