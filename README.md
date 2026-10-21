@@ -1,10 +1,11 @@
 # 🤖 AUTO LIHAT STATUS BY IYAN
 
-> ⚡ **Built from zero. Two missions. Zero drama.**
+> ⚡ **Built from zero. Lightweight core, full-featured plugins.**
 >
-> Bot WhatsApp **super-ringan** dari nol — tugasnya cuma dua: **status auto-kebaca** 👁️ + **status auto-react** 😍.
-> Mesin autoread + autoreact warisan readsw, dipangkas habis sampai tinggal intinya:
-> **tanpa reply • tanpa forward • tanpa menu ribet.**
+> Bot WhatsApp dari nol yang berawal dari dua misi — **status auto-kebaca** 👁️ + **status auto-react** 😍 —
+> lalu berkembang jadi bot MD lengkap: **139 perintah, 17 plugin** (admin grup, game, downloader,
+> AI, anime, media ffmpeg, profil + level, dan banyak lagi). Setiap fitur **dites satu-satu**
+> sebelum dinyatakan berfungsi.
 >
 > Bersih. Cepat. Jalan terus. 👁️✅
 
@@ -24,11 +25,12 @@ Struktur **plugin** — tiap fitur 1 file, gampang nambah.
 - **Mode PUBLIC / SELF** 🌐: mode `public` — semua orang bisa memakai `.menu`; mode `self` — semua command khusus owner. Command **pengaturan selalu khusus owner** di mode apa pun. Ganti lewat `.mode public` / `.mode self`.
 - **Sambutan grup (welcome/goodbye)** 👋: anggota **masuk** grup disambut foto anime + caption *SELAMAT DATANG* + mention; anggota **keluar** dilepas foto anime + caption *SELAMAT TINGGAL*. Atur via `.welcome on/off`.
 - **AFK** 💤: `.afk <alasan>` mencatat **nama + alasan + waktu mulai**. Orang AFK yang di-mention/di-reply di grup (atau owner AFK yang dichat pribadi) akan dikabari bot lengkap dengan alasannya; saat orangnya kirim pesan lagi, bot umumkan kepulangannya + total durasi AFK. Data tersimpan di `afk.json` (aman dari restart).
+- **Ekspansi plugin** 🧩 (semua dites; daftar lengkap di `.menu`): **Grup Admin** (tagall/hidetag/open/close/promote/demote/kick/antilink/warn) • **Game** (math, tictactoe, tebakkata, susunkata, tebakangka, asahotak, caklontong) • **Downloader** (TikTok tanpa watermark, TikTok MP3, Facebook, GDrive, CapCut) • **Search & Info** (jadwal sholat, gempa BMKG, cuaca, Pinterest album, lirik, pencarian web, ytsearch) • **AI** (chat berkonteks + generate gambar, Pollinations) • **Animanga** (Otakudesu/Samehadaku/Kuramanime via AsunaSA API) • **Media** (sticker, toimg, tomp3, tomp4, blur, pixelate, rotate, flip — ffmpeg lokal) • **Profil** (nama/gender/umur/bio + foto profil + Level & XP) • **Tools** (encode/decode, morse, kalkulator, romawi, lorem, readmore) • **Fun** (dadu, koin, suit, cek, fact, roast, ship) • **Bot** (botinfo, listgroup, upsw, setpp, join, leave).
 - Skip status sendiri + reaction (anti-loop). Dedup: 1 status cuma dibaca + di-react 1x.
 - Config dibaca dari disk tiap status → on/off tanpa restart. Atau atur lewat command (lihat bawah).
 
-## Yang TIDAK ada (saat ini)
-Reply, forward ke Telegram/WA, status saver, anti-delete, story, bio, jadibot. Nol — tapi gampang ditambah lewat plugin baru.
+## Yang TIDAK ada (disengaja / sudah dites tidak bisa)
+Fitur 18+/NSFW (khusus bot Telegram owner), jadibot, sistem pembayaran/balance, dan unduhan YouTube/Instagram/Twitter/Spotify — yang terakhir sudah dites dari berbagai sumber publik dan tidak ada yang berfungsi dari server ini (YouTube membatasi IP server: HTTP 429). Pencarian YouTube tetap tersedia via `.ytsearch`.
 
 ## Cara pakai
 1. `cp .env.example .env` lalu isi `BOT_NUMBER_PAIR` (contoh: `628xxxx`) — nomor WA **beda** dari readsw.

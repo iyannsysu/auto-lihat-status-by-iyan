@@ -79,7 +79,7 @@ export default {
 		const args = (m[2] || '').trim();
 		const chatJid = msg.key.remoteJid;
 		const reply = async text => sock.sendMessage(chatJid, { text }, { quoted: msg });
-		const COMMANDS = ['jadwalsholat', 'sholat', 'gempa', 'gempaterkini', 'cuaca', 'pinterest', 'pin', 'lirik', 'lyric', 'search', 'google'];
+		const COMMANDS = ['jadwalsholat', 'sholat', 'gempa', 'gempaterkini', 'cuaca', 'pinterest', 'pin', 'lirik', 'lyric', 'search', 'google', 'ytsearch', 'yts'];
 		if (!COMMANDS.includes(cmd)) return;
 
 		try {
@@ -162,6 +162,23 @@ export default {
 				if (!json?.lyrics) throw new Error('lirik tidak ditemukan');
 				const lirik = json.lyrics.length > 3500 ? json.lyrics.slice(0, 3500) + '\n\n_(dipotong — terlalu panjang)_' : json.lyrics;
 				return reply(`🎤 *${artis} — ${judul}*\n\n${lirik}`);
+			}
+			if (cmd === 'ytsearch' || cmd === 'yts') {
+				if (!args) return reply('Pakai: `.ytsearch nama lagu / kata kunci`');
+				const json = await fetchJson(`https://api.siputzx.my.id/api/s/youtube?query=${encodeURIComponent(args)}`);
+				const items = (json?.data || []).filter(it => it && (it.title || it.url));
+				if (!json?.status || !items.length) throw new Error('tidak ada hasil YouTube');
+				const videos = items.filter(it => it.type === 'video');
+				const list = (videos.length ? videos : items).slice(0, 6);
+				const caption =
+					`▶️ *YouTube — ${args}*\n\n` +
+					list.map((it, i) => `${i + 1}. *${it.title}*\n   ${[it.author?.name || it.author, it.duration?.timestamp || it.duration, it.views ? `${it.views} views` : ''].filter(Boolean).join(' • ')}\n   ${it.url || ''}`).join('\n\n') +
+					`\n\n_Catatan: unduh video YouTube belum bisa dari server ini (kena batasan YouTube), jadi fitur ini pencarian saja._`;
+				const thumb = list[0]?.image || list[0]?.thumbnail;
+				if (thumb) {
+					try { return sock.sendMessage(chatJid, { image: { url: thumb }, caption }, { quoted: msg }); } catch { /* teks saja */ }
+				}
+				return reply(caption);
 			}
 			if (cmd === 'search' || cmd === 'google') {
 				if (!args) return reply('Pakai: `.search kata kunci`');

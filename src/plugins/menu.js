@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 129\n` +
+		`┃ ⌨️ *Total Cmd :* 139\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -101,6 +101,7 @@ function menuText(cfg) {
 		`┃ • \`.jadwalsholat <kota>\` \`.gempa\`\n` +
 		`┃ • \`.cuaca <kota>\` \`.pinterest <kata>\`\n` +
 		`┃ • \`.lirik <artis> - <judul>\` \`.search <kata>\`\n` +
+		`┃ • \`.ytsearch <kata>\` — cari video YouTube\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 ⬇️ *MENU DOWNLOADER* 〕━━━⬣\n` +
@@ -147,6 +148,13 @@ function menuText(cfg) {
 		`┃ \n` +
 		`┃ • \`.dadu\` \`.koin\` \`.suit\` \`.cek\`\n` +
 		`┃ • \`.fact\` \`.roast\` \`.ship\` \`.reaction\`\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🛰️ *MENU BOT* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.botinfo\` — info & statistik bot\n` +
+		`┃ • \`.listgroup\` \`.upsw\` \`.setpp\` _(owner)_\n` +
+		`┃ • \`.join <link>\` \`.leave\` _(owner)_\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 📋 *MENU GENERAL* 〕━━━⬣\n` +
