@@ -70,6 +70,28 @@ function stablePercent(key, max = 100) {
 	return (h % (max + 1));
 }
 
+const JODOH_PREDIKSI = [
+	'Bakal sering ngambek bareng, tapi baikan sebelum tidur.',
+	'Satu hobi kecil bakal jadi alasan ketemu terus.',
+	'Chat jam 2 pagi adalah awal dari segalanya.',
+	'Bakal ada yang diam-diam cemburu tapi gengsi ngaku.',
+	'Rebutan makanan terakhir justru jadi momen paling romantis.',
+	'Salah satu bakal hafal pesanan kopi favorit yang lain.',
+	'Perjalanan jauh pertama bareng akan menentukan arah hubungan.',
+	'Lagu yang sama bakal nggak sengaja jadi "lagu kalian".',
+];
+
+/** Kartu cek jodoh: hasil stabil per pasangan (urutan bebas). */
+function jodohCard(a, b, judul = 'CEK JODOH', keyA = a, keyB = b) {
+	const key = [keyA, keyB].map(s => String(s).toLowerCase()).sort().join('|');
+	const pct = stablePercent('jodoh|' + key);
+	const filled = Math.round(pct / 10);
+	const bar = '❤️'.repeat(filled) + '🖤'.repeat(10 - filled);
+	const verdict = pct >= 90 ? '💍 *JODOH SEJATI!*' : pct >= 75 ? '💘 *Serasi banget!*' : pct >= 55 ? '💕 *Cocok, harapan besar.*' : pct >= 35 ? '💛 *Bisa, tapi butuh usaha & komunikasi.*' : pct >= 20 ? '💔 *Berat... lebih cocok jadi teman cerita.*' : '🧊 *Mending temenan aja dulu.*';
+	const prediksi = JODOH_PREDIKSI[stablePercent('pred|' + key, JODOH_PREDIKSI.length - 1)];
+	return `💘 *${judul}*\n\n${a} ❤️ ${b}\n${bar}\nKecocokan: *${pct}%*\n${verdict}\n\n🔮 ${prediksi}`;
+}
+
 export default {
 	name: 'fun',
 	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, cantik/ganteng acak grup, reaction.',
@@ -124,16 +146,6 @@ export default {
 			return reply(`💘 *Ship ${parts[0]} ❤️ ${parts[1]}*\nKecocokan: *${pct}%*\n${komentar}`);
 		}
 		if (cmd === 'jodoh') {
-			const PREDIKSI = [
-				'Bakal sering ngambek bareng, tapi baikan sebelum tidur.',
-				'Satu hobi kecil bakal jadi alasan ketemu terus.',
-				'Chat jam 2 pagi adalah awal dari segalanya.',
-				'Bakal ada yang diam-diam cemburu tapi gengsi ngaku.',
-				'Rebutan makanan terakhir justru jadi momen paling romantis.',
-				'Salah satu bakal hafal pesanan kopi favorit yang lain.',
-				'Perjalanan jauh pertama bareng akan menentukan arah hubungan.',
-				'Lagu yang sama bakal nggak sengaja jadi "lagu kalian".',
-			];
 			const cInfo = msg.message?.extendedTextMessage?.contextInfo;
 			const parts = args.replace(/@\d+/g, '').split(/[&+]/).map(s => s.trim()).filter(Boolean);
 			let a = '', b = '';
@@ -145,12 +157,21 @@ export default {
 				else if (parts.length === 1) { a = msg.pushName || 'Kamu'; b = parts[0]; }
 				else return reply('Pakai: `.jodoh Budi & Ani` — atau mention/reply orangnya: `.jodoh @dia`');
 			}
-			const key = [a, b].map(s => s.toLowerCase()).sort().join('|');
-			const pct = stablePercent('jodoh|' + key);
-			const bar = '❤️'.repeat(Math.round(pct / 10)) + '🖤'.repeat(10 - Math.round(pct / 10));
-			const verdict = pct >= 90 ? '💍 *JODOH SEJATI!*' : pct >= 75 ? '💘 *Serasi banget!*' : pct >= 55 ? '💕 *Cocok, harapan besar.*' : pct >= 35 ? '💛 *Bisa, tapi butuh usaha & komunikasi.*' : pct >= 20 ? '💔 *Berat... lebih cocok jadi teman cerita.*' : '🧊 *Mending temenan aja dulu.*';
-			const prediksi = PREDIKSI[stablePercent('pred|' + key, PREDIKSI.length - 1)];
-			return reply(`💘 *CEK JODOH*\n\n${a} ❤️ ${b}\n${bar}\nKecocokan: *${pct}%*\n${verdict}\n\n🔮 ${prediksi}\n\n_(hiburan ya — jodoh beneran tetap di tangan Tuhan 😇)_`);
+			return reply(jodohCard(a, b) + '\n\n_(hiburan ya — jodoh beneran tetap di tangan Tuhan 😇)_');
+		}
+		if (cmd === 'jodohku') {
+			if (!chatJid.endsWith('@g.us')) return reply('Command `.jodohku` cuma bisa di grup — bot milih jodohmu acak dari anggota grup 🏹');
+			let meta;
+			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
+			const digits = j => String(j || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+			const meJid = msg.key.participant || chatJid;
+			const exclude = new Set([digits(meJid), digits(sock.user?.id)]);
+			const candidates = (meta?.participants || []).map(p => p.id).filter(id => id && !exclude.has(digits(id)));
+			if (!candidates.length) return reply('Anggota grupnya kurang buat dicariin jodoh 😅');
+			const pick = candidates[Math.floor(Math.random() * candidates.length)];
+			const a = msg.pushName || 'Kamu';
+			const card = jodohCard(a, `@${digits(pick)}`, 'JODOHKU', digits(meJid), digits(pick));
+			return sock.sendMessage(chatJid, { text: card + '\n\n_(dipilih acak oleh Cupid Bot 🏹 — kurang cocok? panggil lagi aja)_', mentions: [pick] }, { quoted: msg });
 		}
 		if (cmd === 'cantik' || cmd === 'ganteng') {
 			if (!chatJid.endsWith('@g.us')) return reply(`Command \`.${cmd}\` cuma bisa di grup — bot milih orangnya acak dari anggota grup 😄`);
