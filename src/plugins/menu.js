@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 139\n` +
+		`┃ ⌨️ *Total Cmd :* 141\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -106,6 +106,7 @@ function menuText(cfg) {
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 ⬇️ *MENU DOWNLOADER* 〕━━━⬣\n` +
 		`┃ \n` +
+		`┃ • \`.play <judul lagu>\` — YouTube, pilih MP3/MP4\n` +
 		`┃ • \`.tiktok <link>\` — video TT tanpa watermark\n` +
 		`┃ • \`.tiktokmp3 <link>\` — audio dari TikTok\n` +
 		`┃ • \`.facebook <link>\` \`.gdrive <link>\`\n` +
