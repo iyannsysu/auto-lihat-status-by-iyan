@@ -54,7 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 95\n` +
+		`┃ ⌨️ *Total Cmd :* 106\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -100,6 +100,13 @@ function menuText(cfg) {
 		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
 		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
 		`┃   ↳ _khusus admin grup / owner_\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🔎 *MENU SEARCH & INFO* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.jadwalsholat <kota>\` \`.gempa\`\n` +
+		`┃ • \`.cuaca <kota>\` \`.pinterest <kata>\`\n` +
+		`┃ • \`.lirik <artis> - <judul>\` \`.search <kata>\`\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 ⬇️ *MENU DOWNLOADER* 〕━━━⬣\n` +
