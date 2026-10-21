@@ -72,7 +72,7 @@ function stablePercent(key, max = 100) {
 
 export default {
 	name: 'fun',
-	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, reaction.',
+	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, reaction.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -122,6 +122,35 @@ export default {
 			const pct = stablePercent('ship|' + key);
 			const komentar = pct >= 85 ? '💘 Jodoh banget ini!' : pct >= 60 ? '💕 Cocok, gas terus!' : pct >= 40 ? '💛 Bisa dicoba.' : pct >= 20 ? '💔 Agak berat...' : '🧊 Mending temenan aja.';
 			return reply(`💘 *Ship ${parts[0]} ❤️ ${parts[1]}*\nKecocokan: *${pct}%*\n${komentar}`);
+		}
+		if (cmd === 'jodoh') {
+			const PREDIKSI = [
+				'Bakal sering ngambek bareng, tapi baikan sebelum tidur.',
+				'Satu hobi kecil bakal jadi alasan ketemu terus.',
+				'Chat jam 2 pagi adalah awal dari segalanya.',
+				'Bakal ada yang diam-diam cemburu tapi gengsi ngaku.',
+				'Rebutan makanan terakhir justru jadi momen paling romantis.',
+				'Salah satu bakal hafal pesanan kopi favorit yang lain.',
+				'Perjalanan jauh pertama bareng akan menentukan arah hubungan.',
+				'Lagu yang sama bakal nggak sengaja jadi "lagu kalian".',
+			];
+			const cInfo = msg.message?.extendedTextMessage?.contextInfo;
+			const parts = args.replace(/@\d+/g, '').split(/[&+]/).map(s => s.trim()).filter(Boolean);
+			let a = '', b = '';
+			if (parts.length >= 2) {
+				[a, b] = [parts[0], parts[1]];
+			} else {
+				const targetJid = cInfo?.mentionedJid?.[0] || cInfo?.participant;
+				if (targetJid) { a = parts[0] || msg.pushName || 'Kamu'; b = targetJid.split('@')[0]; }
+				else if (parts.length === 1) { a = msg.pushName || 'Kamu'; b = parts[0]; }
+				else return reply('Pakai: `.jodoh Budi & Ani` — atau mention/reply orangnya: `.jodoh @dia`');
+			}
+			const key = [a, b].map(s => s.toLowerCase()).sort().join('|');
+			const pct = stablePercent('jodoh|' + key);
+			const bar = '❤️'.repeat(Math.round(pct / 10)) + '🖤'.repeat(10 - Math.round(pct / 10));
+			const verdict = pct >= 90 ? '💍 *JODOH SEJATI!*' : pct >= 75 ? '💘 *Serasi banget!*' : pct >= 55 ? '💕 *Cocok, harapan besar.*' : pct >= 35 ? '💛 *Bisa, tapi butuh usaha & komunikasi.*' : pct >= 20 ? '💔 *Berat... lebih cocok jadi teman cerita.*' : '🧊 *Mending temenan aja dulu.*';
+			const prediksi = PREDIKSI[stablePercent('pred|' + key, PREDIKSI.length - 1)];
+			return reply(`💘 *CEK JODOH*\n\n${a} ❤️ ${b}\n${bar}\nKecocokan: *${pct}%*\n${verdict}\n\n🔮 ${prediksi}\n\n_(hiburan ya — jodoh beneran tetap di tangan Tuhan 😇)_`);
 		}
 		if (cmd === 'reaction') {
 			const quoted = msg.message?.extendedTextMessage?.contextInfo;

@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 141\n` +
+		`┃ ⌨️ *Total Cmd :* 142\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -148,7 +148,8 @@ function menuText(cfg) {
 		`╭━━━〔 🎉 *MENU FUN* 〕━━━⬣\n` +
 		`┃ \n` +
 		`┃ • \`.dadu\` \`.koin\` \`.suit\` \`.cek\`\n` +
-		`┃ • \`.fact\` \`.roast\` \`.ship\` \`.reaction\`\n` +
+		`┃ • \`.fact\` \`.roast\` \`.ship\` \`.jodoh\`\n` +
+		`┃ • \`.reaction\` — react pesan orang (reply)\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🛰️ *MENU BOT* 〕━━━⬣\n` +
