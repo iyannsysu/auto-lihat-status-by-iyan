@@ -141,12 +141,13 @@ export default {
 		try {
 			switch (cmd) {
 				case 'tagall': {
-					const mentions = participants.map(p => p.id);
-					const list = participants.map((p, i) => `${i + 1}. @${p.id.split('@')[0]}`).join('\n');
+					// Nomor asli peserta (phoneNumber) didahulukan — di grup LID, id = @lid.
+					const mentions = participants.map(p => p.phoneNumber || p.id);
+					const list = participants.map((p, i) => `${i + 1}. @${(p.phoneNumber || p.id).split('@')[0]}`).join('\n');
 					return reply(`📣 *TAG ALL*${args ? `\n${args}` : ''}\n\n${list}`, { mentions });
 				}
 				case 'hidetag': {
-					const mentions = participants.map(p => p.id);
+					const mentions = participants.map(p => p.phoneNumber || p.id);
 					return sock.sendMessage(chatJid, { text: args || '📣 Ada pengumuman dari admin.', mentions });
 				}
 				case 'open':
@@ -199,7 +200,7 @@ export default {
 				case 'listadmin': {
 					const admins = participants.filter(isAdmin);
 					if (!admins.length) return reply('Belum ada admin terbaca di grup ini.');
-					return reply('👑 *ADMIN GRUP*\n\n' + admins.map((p, i) => `${i + 1}. @${p.id.split('@')[0]}${p.admin === 'superadmin' ? ' (pemilik grup)' : ''}`).join('\n'), { mentions: admins.map(p => p.id) });
+					return reply('👑 *ADMIN GRUP*\n\n' + admins.map((p, i) => `${i + 1}. @${(p.phoneNumber || p.id).split('@')[0]}${p.admin === 'superadmin' ? ' (pemilik grup)' : ''}`).join('\n'), { mentions: admins.map(p => p.phoneNumber || p.id) });
 				}
 				case 'botadmin':
 					return reply(botIsAdmin ? '✅ Bot *admin* di grup ini — semua fitur admin bisa jalan.' : '❌ Bot *bukan admin* di grup ini. Jadikan bot admin dulu agar fitur admin (kick, antilink, dll) berfungsi.');

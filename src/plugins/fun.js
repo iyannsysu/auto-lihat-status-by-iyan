@@ -33,6 +33,7 @@
  *   .ship <nama1> & <nama2>  ukur kecocokan (stabil per pasangan)
  *   .reaction                react emoji acak ke pesan yang di-reply
  */
+import { jidNormalizedUser } from 'baileys';
 import { readConfig, getMessageText } from '../helper/config.js';
 
 const FACTS = [
@@ -68,6 +69,30 @@ function stablePercent(key, max = 100) {
 	let h = 0;
 	for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
 	return (h % (max + 1));
+}
+
+// Anggota grup versi NOMOR ASLI: di grup beralamat LID, id peserta adalah
+// @lid (ID samaran, bukan nomor HP). Nomor asli diambil dari phoneNumber
+// peserta, atau dipetakan lewat lidMapping Baileys bila belum ada.
+async function memberJids(sock, meta) {
+	const seen = new Set();
+	const out = [];
+	for (const p of meta?.participants || []) {
+		let jid = p.phoneNumber || p.id || '';
+		if (jid.endsWith('@lid')) {
+			try {
+				const pn = await sock?.signalRepository?.lidMapping?.getPNForLID?.(jid);
+				if (pn) jid = pn;
+			} catch { /* abaikan */ }
+		}
+		if (!jid) continue;
+		const norm = jidNormalizedUser(jid);
+		const key = norm.split('@')[0];
+		if (seen.has(key)) continue;
+		seen.add(key);
+		out.push(norm);
+	}
+	return out;
 }
 
 const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -204,9 +229,16 @@ export default {
 			let meta;
 			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
 			const digits = j => String(j || '').split('@')[0].split(':')[0].replace(/\D/g, '');
-			const meJid = msg.key.participant || chatJid;
-			const exclude = new Set([digits(meJid), digits(sock.user?.id)]);
-			const candidates = (meta?.participants || []).map(p => p.id).filter(id => id && !exclude.has(digits(id)));
+			const meRaw = msg.key.participant || chatJid;
+			let meJid = msg.key.participantAlt || meRaw;
+			if (String(meJid).endsWith('@lid')) {
+				try {
+					const pn = await sock?.signalRepository?.lidMapping?.getPNForLID?.(meJid);
+					if (pn) meJid = pn;
+				} catch { /* abaikan */ }
+			}
+			const exclude = new Set([digits(meRaw), digits(meJid), digits(sock.user?.id)]);
+			const candidates = (await memberJids(sock, meta)).filter(id => !exclude.has(digits(id)));
 			if (!candidates.length) return reply('Anggota grupnya kurang buat dicariin jodoh 😅');
 			const pick = candidates[Math.floor(Math.random() * candidates.length)];
 			const a = msg.pushName || 'Kamu';
@@ -217,7 +249,7 @@ export default {
 			if (!chatJid.endsWith('@g.us')) return reply('Command `.rating` cuma bisa di grup — bot menilai semua anggota grupnya ⭐');
 			let meta;
 			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
-			const members = (meta?.participants || []).map(p => p.id).filter(Boolean);
+			const members = await memberJids(sock, meta);
 			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
 			const digits = j => String(j || '').split('@')[0].split(':')[0];
 			// Rating stabil per anggota per grup (6-10) — hasil tidak berubah tiap dipanggil.
@@ -239,7 +271,7 @@ export default {
 			if (!chatJid.endsWith('@g.us')) return reply(`Command \`.${cmd}\` cuma bisa di grup — bot milih orangnya acak dari anggota grup 😄`);
 			let meta;
 			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
-			const members = (meta?.participants || []).map(p => p.id).filter(Boolean);
+			const members = await memberJids(sock, meta);
 			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
 			const pick = members[Math.floor(Math.random() * members.length)];
 			const pct = 60 + Math.floor(Math.random() * 41); // 60-100, namanya juga pemenang
