@@ -137,11 +137,22 @@ export default {
 				const json = await fetchJson(`https://api.siputzx.my.id/api/s/pinterest?query=${encodeURIComponent(args)}`);
 				const items = json?.data || [];
 				if (!json?.status || !items.length) throw new Error('tidak ada hasil Pinterest');
-				const first = items[0];
-				const img = findPinimg(first);
-				const caption = `📌 *Pinterest — ${args}*\n${first.pin || ''}\n\nHasil lain:\n${items.slice(1, 4).map((it, i) => `${i + 2}. ${it.pin || ''}`).join('\n')}`;
-				if (img) return sock.sendMessage(chatJid, { image: { url: img }, caption }, { quoted: msg });
-				return reply(caption);
+				// Kirim sebagai ALBUM: sampai 6 gambar dikirim berurutan
+				// (WhatsApp otomatis mengelompokkannya jadi satu album).
+				// Tanpa link pin sama sekali — gambarnya saja.
+				const images = items.map(it => findPinimg(it)).filter(Boolean).slice(0, 6);
+				if (!images.length) throw new Error('gambar Pinterest tidak ditemukan');
+				for (let i = 0; i < images.length; i++) {
+					await sock.sendMessage(
+						chatJid,
+						{
+							image: { url: images[i] },
+							...(i === 0 ? { caption: `📌 *Pinterest — ${args}*\n${images.length} gambar` } : {}),
+						},
+						i === 0 ? { quoted: msg } : {}
+					);
+				}
+				return;
 			}
 			if (cmd === 'lirik' || cmd === 'lyric') {
 				const parts = args.split(/\s+-\s+/);
