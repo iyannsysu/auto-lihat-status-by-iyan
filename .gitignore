@@ -4,3 +4,4 @@ bot.log
 bot.lock
 bot-sup.pid
 node_modules/
+afk.json

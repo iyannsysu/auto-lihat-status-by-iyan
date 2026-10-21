@@ -23,6 +23,7 @@ Struktur **plugin** — tiap fitur 1 file, gampang nambah.
 - **Menu foto** 🖼️: `.menu` mengirim foto banner + daftar perintah bergaya bot MD profesional, status ON/OFF-nya live dari config.
 - **Mode PUBLIC / SELF** 🌐: mode `public` — semua orang bisa memakai `.menu`; mode `self` — semua command khusus owner. Command **pengaturan selalu khusus owner** di mode apa pun. Ganti lewat `.mode public` / `.mode self`.
 - **Sambutan grup (welcome/goodbye)** 👋: anggota **masuk** grup disambut foto anime + caption *SELAMAT DATANG* + mention; anggota **keluar** dilepas foto anime + caption *SELAMAT TINGGAL*. Atur via `.welcome on/off`.
+- **AFK** 💤: `.afk <alasan>` mencatat **nama + alasan + waktu mulai**. Orang AFK yang di-mention/di-reply di grup (atau owner AFK yang dichat pribadi) akan dikabari bot lengkap dengan alasannya; saat orangnya kirim pesan lagi, bot umumkan kepulangannya + total durasi AFK. Data tersimpan di `afk.json` (aman dari restart).
 - Skip status sendiri + reaction (anti-loop). Dedup: 1 status cuma dibaca + di-react 1x.
 - Config dibaca dari disk tiap status → on/off tanpa restart. Atau atur lewat command (lihat bawah).
 
@@ -52,6 +53,13 @@ Command **pengaturan** dikirim **dari akun bot sendiri** (pesan fromMe, di chat 
 | `.welcome on` | Nyalain sambutan grup (foto anime: masuk = selamat datang, keluar = selamat tinggal) |
 | `.welcome off` | Matiin sambutan grup |
 | `.welcome cek` | Lihat status sambutan grup |
+
+**AFK:**
+| Perintah | Artinya |
+|---|---|
+| `.afk <alasan>` | Aktifkan AFK (nama + alasan + waktu tercatat). Mode public: siapa pun untuk dirinya; mode self: hanya owner |
+| `.afk off` | Matikan AFK sendiri |
+| `.afk cek` | Daftar semua yang sedang AFK |
 
 **Lihat status:**
 | Perintah | Artinya |
@@ -99,6 +107,7 @@ Edit `config.json` langsung, tanpa restart:
 - `src/plugins/autoreact.js` — fitur: auto-react status (emoji + teks) + command `.react`.
 - `src/plugins/menu.js` — fitur: `.menu` / `.help` foto banner bergaya bot MD (foto dari `assets/menu.jpg`; tanpa foto, menu terkirim sebagai teks) + `.mode` ganti mode public/self.
 - `src/plugins/welcome.js` — fitur: sambutan grup foto anime (masuk = `assets/welcome.jpg`, keluar = `assets/goodbye.jpg`; tanpa foto, terkirim sebagai teks) + command `.welcome`.
+- `src/plugins/afk.js` — fitur: AFK (`.afk`) — nama + alasan + waktu; notif saat di-mention/di-reply/dichat; pengumuman kembali; data di `afk.json`.
 - `scripts/make-plugin.js` — **pembuat plugin baru**.
 - `config.json` — setting bot (autoread, autoreact, emoji, teks, dll).
 - `run.sh` — supervisor (flock + auto-restart)

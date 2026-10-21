@@ -83,6 +83,14 @@ function menuText(cfg) {
 		`┃     (foto anime: datang 👋 / pergi 🍂)\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 💤 *MENU AFK* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.afk <alasan>\` — aktifkan AFK\n` +
+		`┃   ↳ nama + alasan + waktu tercatat\n` +
+		`┃ • \`.afk off\` — matikan AFK\n` +
+		`┃ • \`.afk cek\` — daftar yang sedang AFK\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 ⚙️ *PENGATURAN* 〕━━━⬣\n` +
 		`┃ \n` +
 		`┃ • \`.mode public\` / \`.mode self\` — ganti mode bot\n` +
