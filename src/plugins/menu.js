@@ -46,7 +46,6 @@ const MENU_IMAGE = path.join(process.cwd(), 'assets', 'menu.jpg');
 const onOff = v => (v ? 'ON 🟢' : 'OFF 🔴');
 
 function menuText(cfg) {
-	const mode = cfg.react_mode === 'teks' ? 'TEKS 📝' : 'EMOJI 😍';
 	const botMode = cfg.mode === 'public' ? 'PUBLIC 🌐 (menu untuk semua)' : 'SELF 🔒 (khusus owner)';
 	return (
 		`╭━━━〔 👁️ *AUTO LIHAT STATUS* 〕━━━⬣\n` +
@@ -54,27 +53,8 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 119\n` +
+		`┃ ⌨️ *Total Cmd :* 129\n` +
 		`┃ 📡 *Status :* Online\n` +
-		`┃ \n` +
-		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
-		`╭━━━〔 👁️ *MENU LIHAT STATUS* 〕━━━⬣\n` +
-		`┃ \n` +
-		`┃ • \`.read on\` / \`.read off\`\n` +
-		`┃   ↳ Auto-Lihat Status : *${onOff(cfg.autoread)}*\n` +
-		`┃ • \`.swgrup on\` / \`.swgrup off\`\n` +
-		`┃   ↳ SW Grup : *${onOff(cfg.swgrup)}*\n` +
-		`┃ \n` +
-		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
-		`╭━━━〔 😍 *MENU AUTO REACT* 〕━━━⬣\n` +
-		`┃ \n` +
-		`┃ • \`.react on\` / \`.react off\`\n` +
-		`┃   ↳ Auto React : *${onOff(cfg.autoreact)}* (mode ${mode})\n` +
-		`┃ • \`.react emoji ❤️ 🔥\` — pakai emoji + set daftar\n` +
-		`┃ • \`.react teks SEMANGAT!\` — pakai teks + set teks\n` +
-		`┃ • \`.react teks off\` — balik ke mode emoji\n` +
-		`┃ • \`.react acak on/off\` — emoji acak / urut\n` +
-		`┃ • \`.react cek\` — lihat setting react\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 👥 *MENU GRUP* 〕━━━⬣\n` +
@@ -136,6 +116,15 @@ function menuText(cfg) {
 		`┃ • \`.profile\` — lihat profil (nama/gender/umur/bio)\n` +
 		`┃ • \`.setname\` \`.setgender\` \`.setage\` \`.setbio\`\n` +
 		`┃ • \`.getpp\` — foto profil WA seseorang\n` +
+		`┃ • \`.level\` — level & XP kamu\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🎨 *MENU MEDIA* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.sticker\` — foto/video jadi sticker\n` +
+		`┃ • \`.toimg\` \`.tomp3\` \`.tomp4\` — konversi media\n` +
+		`┃ • \`.blur\` \`.pixelate\` \`.rotate\` \`.flip\`\n` +
+		`┃   ↳ _reply media-nya dengan command_\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🎮 *MENU GAME* 〕━━━⬣\n` +

@@ -30,6 +30,7 @@
  *   .setage <umur>         atur umur (5-100)
  *   .setbio <teks>         atur bio singkat
  *   .getpp [@user | reply] kirim foto profil WhatsApp seseorang
+ *   .level                 lihat level & XP kamu (XP dari ngobrol biasa)
  *
  * Data disimpan di profil.json (atomik, aman dari restart).
  */
@@ -53,6 +54,25 @@ function saveProfiles() {
 }
 function getProfile(jid) { if (!profiles[jid]) profiles[jid] = {}; return profiles[jid]; }
 
+// ---------- Level & XP ----------
+// Ngobrol biasa dapat XP (jeda 60 detik per orang, +5 s/d +15 XP).
+// Level: level n mulai di 100*(n-1)^2 XP. Data XP tersimpan di profil.json.
+const lastXpAt = new Map();
+function levelFor(xp) {
+	const level = Math.floor(Math.sqrt((xp || 0) / 100)) + 1;
+	const base = 100 * (level - 1) ** 2;
+	const next = 100 * level ** 2;
+	return { level, base, next, progress: Math.min(1, ((xp || 0) - base) / (next - base)) };
+}
+function awardXp(jid) {
+	const now = Date.now();
+	if (now - (lastXpAt.get(jid) || 0) < 60_000) return;
+	lastXpAt.set(jid, now);
+	const p = getProfile(jid);
+	p.xp = (p.xp || 0) + 5 + Math.floor(Math.random() * 11);
+	saveProfiles();
+}
+
 function senderJid(sock, msg) {
 	if (msg.key.fromMe) return jidNormalizedUser(sock.user?.id || '');
 	const raw = msg.key.participant || msg.participant || msg.key.remoteJid || '';
@@ -69,13 +89,15 @@ function targetJid(sock, msg) {
 
 function profileCard(jid, data, fallbackName) {
 	const belum = '_(belum diatur)_';
+	const lvl = levelFor(data.xp || 0);
 	return (
 		`👤 *PROFIL USER*\n\n` +
 		`📛 Nama : *${data.name || fallbackName || jid.split('@')[0]}*\n` +
 		`📱 Nomor : +${jid.split('@')[0]}\n` +
 		`🚻 Gender : ${data.gender || belum}\n` +
 		`🎂 Umur : ${data.age ? `${data.age} tahun` : belum}\n` +
-		`📝 Bio : ${data.bio || belum}\n\n` +
+		`📝 Bio : ${data.bio || belum}\n` +
+		`🏅 Level : ${lvl.level} (${data.xp || 0} XP)\n\n` +
 		`_Atur profilmu: \`.setname\` \`.setgender\` \`.setage\` \`.setbio\`_`
 	);
 }
@@ -94,6 +116,11 @@ export default {
 		if (!msg.key.fromMe && readConfig().mode !== 'public') return;
 		const raw = getMessageText(msg);
 		if (!raw) return;
+		// XP untuk obrolan biasa (bukan command).
+		if (!/^[./!]/.test(raw.trim())) {
+			try { awardXp(senderJid(sock, msg)); } catch { /* abaikan */ }
+			return;
+		}
 		const m = raw.match(/^[./!]([a-z0-9]+)\b([\s\S]*)$/i);
 		if (!m) return;
 		const cmd = m[1].toLowerCase();
@@ -124,6 +151,20 @@ export default {
 			if (!args) return reply('Pakai: `.setbio teks bio singkatmu`');
 			getProfile(me).bio = args.slice(0, 150); getProfile(me).updatedAt = Date.now(); saveProfiles();
 			return reply('✅ Bio profilmu sudah diperbarui.');
+		}
+		if (cmd === 'level' || cmd === 'lvl') {
+			const data = getProfile(me);
+			const lvl = levelFor(data.xp || 0);
+			const filled = Math.round(lvl.progress * 10);
+			const bar = '▰'.repeat(filled) + '▱'.repeat(10 - filled);
+			return reply(
+				`🏅 *LEVEL KAMU*\n\n` +
+					`👤 ${data.name || msg.pushName || me.split('@')[0]}\n` +
+					`⭐ Level : *${lvl.level}*\n` +
+					`✨ XP : ${data.xp || 0} / ${lvl.next} (menuju level ${lvl.level + 1})\n` +
+					`${bar} ${Math.round(lvl.progress * 100)}%\n\n` +
+					`_Ngobrol biasa di chat/grup buat nambah XP (jeda 60 detik)._`
+			);
 		}
 		if (cmd === 'profile' || cmd === 'profil') {
 			const target = targetJid(sock, msg);
