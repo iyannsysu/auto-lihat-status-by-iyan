@@ -67,10 +67,20 @@ export default {
 			return reply(`⏱️ *Runtime bot*\nSudah menyala: *${formatUptime(process.uptime() * 1000)}*`);
 		}
 		if (cmd === 'owner') {
+			// Kartu kontak beneran (vCard) — nomor owner bisa langsung disimpan / dichat.
+			const OWNER_NUM = '6282161429908';
+			const vcard =
+				'BEGIN:VCARD\n' +
+				'VERSION:3.0\n' +
+				'FN:Iyan — Owner Bot\n' +
+				`TEL;type=CELL;type=VOICE;waid=${OWNER_NUM}:+62 821-6142-9908\n` +
+				'END:VCARD';
+			await sock.sendMessage(chatJid, { contacts: { displayName: 'Iyan — Owner Bot', contacts: [{ vcard }] } }, { quoted: msg });
 			return reply(
 				`👑 *OWNER BOT*\n\n` +
 					`Nama : Iyan\n` +
-					`WhatsApp : +6282161429908\n\n` +
+					`WhatsApp : +${OWNER_NUM}\n` +
+					`Chat langsung : https://wa.me/${OWNER_NUM}\n\n` +
 					`Ada yang memperjualbelikan script ini? Laporkan ke nomor di atas.`
 			);
 		}

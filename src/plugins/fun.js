@@ -94,7 +94,7 @@ function jodohCard(a, b, judul = 'CEK JODOH', keyA = a, keyB = b) {
 
 export default {
 	name: 'fun',
-	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, cantik/ganteng acak grup, reaction.',
+	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, jodohku, kapan, cantik/ganteng acak grup, reaction.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -158,6 +158,43 @@ export default {
 				else return reply('Pakai: `.jodoh Budi & Ani` — atau mention/reply orangnya: `.jodoh @dia`');
 			}
 			return reply(jodohCard(a, b) + '\n\n_(hiburan ya — jodoh beneran tetap di tangan Tuhan 😇)_');
+		}
+		if (cmd === 'seberapa') {
+			const q = args.toLowerCase().replace(/\?+$/, '').replace(/\s+/g, ' ').trim();
+			if (!q) return reply('Pakai: `.seberapa ganteng aku` / `.seberapa sayang dia sama aku` / `.seberapa hoki aku hari ini`');
+			const pct = stablePercent(senderNum + '|seberapa|' + q);
+			const filled = Math.round(pct / 10);
+			const bar = '▰'.repeat(filled) + '▱'.repeat(10 - filled);
+			const komentar = pct >= 90 ? 'Parah sih ini, level dewa! 🔥'
+				: pct >= 75 ? 'Tinggi banget! 😍'
+				: pct >= 55 ? 'Di atas rata-rata lah 😎'
+				: pct >= 40 ? 'Standar-standar aja 😐'
+				: pct >= 20 ? 'Agak kurang ya... 😅'
+				: 'Duh, nyaris nggak ada 🥲';
+			return reply(`📏 *SEBERAPA ${q.toUpperCase()}*\n\n${bar}\nHasilnya: *${pct}%*\n${komentar}\n\n_(hasil tetap buat pertanyaan yang sama — jangan ngarep berubah 😆)_`);
+		}
+		if (cmd === 'kapan') {
+			const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+			const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+			const PENUTUP = [
+				'Catat tanggalnya, jangan sampai lupa 😌',
+				'Bintang-bintang sudah sepakat soal ini ✨',
+				'Bola kristal bot nggak pernah bohong (katanya) 🔮',
+				'Sabar ya, semua indah pada waktunya 🌸',
+				'Mulai nabung dari sekarang, buat jaga-jaga 💸',
+				'Rahasia ya, jangan bilang siapa-siapa 🤫',
+			];
+			const qNorm = args.toLowerCase().replace(/\?+$/, '').replace(/^kah\s+/, '').replace(/\s+/g, ' ').trim();
+			if (!qNorm) return reply('Pakai: `.kapan kah aku nikah` / `.kapan aku punya anak` / `.kapan aku kaya` 🔮');
+			const key = senderNum + '|kapan|' + qNorm;
+			const offset = stablePercent(key, 3649) + 1; // 1 hari s/d ~10 tahun lagi
+			const target = new Date(Date.now() + offset * 86400000);
+			const tanggal = `${HARI[target.getDay()]}, ${target.getDate()} ${BULAN[target.getMonth()]} ${target.getFullYear()}`;
+			const relatif = offset < 30 ? `${offset} hari lagi`
+				: offset < 365 ? `${Math.round(offset / 30)} bulan lagi`
+				: `${(offset / 365).toFixed(1).replace('.', ',').replace(/,0$/, '')} tahun lagi`;
+			const penutup = PENUTUP[stablePercent(key + '|x', PENUTUP.length - 1)];
+			return reply(`🔮 *RAMALAN KAPAN*\n\n❓ "Kapan ${qNorm}?"\n\nMenurut terawangan bot:\n📅 *${tanggal}*\n⏳ Sekitar *${relatif}* dari sekarang.\n\n${penutup}\n\n_(hiburan ya — masa depan tetap kamu yang menentukan 😇)_`);
 		}
 		if (cmd === 'jodohku') {
 			if (!chatJid.endsWith('@g.us')) return reply('Command `.jodohku` cuma bisa di grup — bot milih jodohmu acak dari anggota grup 🏹');
