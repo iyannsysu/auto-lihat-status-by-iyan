@@ -38,6 +38,7 @@
  */
 import { jidNormalizedUser } from 'baileys';
 import { readConfig, getMessageText } from '../helper/config.js';
+import * as Chess from '../helper/chess.js';
 
 const SESSION_TTL = 3 * 60 * 1000;
 const sessions = new Map(); // `${chat}|${type}` -> state
@@ -118,12 +119,50 @@ function tttBoard(board) {
 	return [0, 1, 2].map(r => [0, 1, 2].map(c => cell(board[r * 3 + c])).join(' ')).join('\n');
 }
 
-const STARTERS = ['math', 'tebakkata', 'susunkata', 'tebakangka', 'asahotak', 'caklontong', 'tictactoe'];
+const STARTERS = ['math', 'tebakkata', 'susunkata', 'tebakangka', 'asahotak', 'caklontong', 'tictactoe', 'chess', 'catur'];
+
+// ---- Catur vs AI ----
+function chessCaption(st, playerName, note = '') {
+	const status = Chess.gameStatus(st);
+	const turnTxt = status.over ? 'SELESAI' : st.turn === 'w' ? `${playerName} (Putih)` : 'AI (Hitam)';
+	const statusTxt = status.over ? `🏁 ${status.why.toUpperCase()} — ${status.result}` : status.check ? '⚠️ SKAK!' : 'MAIN';
+	let lastLog = '-';
+	if (st.hist.length) {
+		const n = Math.ceil(st.hist.length / 2);
+		const wSan = st.hist[st.hist.length - (st.hist.length % 2 === 0 ? 2 : 1)];
+		const bSan = st.hist.length % 2 === 0 ? st.hist[st.hist.length - 1] : null;
+		lastLog = `${n}. ${wSan}${bSan ? ' ' + bSan : ''}`;
+	}
+	return (
+		`♟️ *CHESS MASTER*\n` +
+		`━━━━━━━━━━━━━━━\n` +
+		`👤 Kamu vs 🤖 AI • Level: Santai\n` +
+		`🎯 Giliran : ${turnTxt}\n` +
+		`📌 Status : ${statusTxt}\n` +
+		`🔢 Langkah : ${st.full}\n` +
+		`📜 Log : ${lastLog}\n` +
+		`━━━━━━━━━━━━━━━\n` +
+		`Kamu makan : ${Chess.capturedGlyphs(st.capW, 'b') || '-'}\n` +
+		`AI makan : ${Chess.capturedGlyphs(st.capB, 'w') || '-'}\n` +
+		(note ? `\n${note}\n` : '') +
+		(status.over ? `\nGame selesai. Ketik \`.chess\` buat main lagi!` : `\nKetik langkahmu: \`e4\`, \`Nf3\`, \`e2e4\`, \`O-O\` — atau \`.stopgame\` buat menyerah.`)
+	);
+}
+
+async function sendChessBoard(sock, chatJid, st, playerName, note = '', quoted) {
+	const caption = chessCaption(st, playerName, note);
+	try {
+		const png = await Chess.renderBoardPng(st);
+		return sock.sendMessage(chatJid, { image: png, caption }, quoted ? { quoted } : {});
+	} catch {
+		return sock.sendMessage(chatJid, { text: `${caption}\n\n\`\`\`\n${Chess.boardText(st)}\n\`\`\`` }, quoted ? { quoted } : {});
+	}
+}
 const ANSWER_GAMES = ['math', 'tebakkata', 'susunkata', 'tebakangka', 'asahotak', 'caklontong'];
 
 export default {
 	name: 'game',
-	desc: 'Game: math, tebakkata, susunkata, tebakangka, asahotak, caklontong, tictactoe.',
+	desc: 'Game: math, tebakkata, susunkata, tebakangka, asahotak, caklontong, tictactoe, chess vs AI.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -146,6 +185,40 @@ export default {
 			let found = false;
 			for (const t of [...STARTERS]) if (getSession(chatJid, t)) { clearSession(chatJid, t); found = true; }
 			return reply(found ? '🛑 Game di chat ini sudah diakhiri.' : 'Tidak ada game yang sedang jalan di chat ini.');
+		}
+
+		// ---- Catur: langkah lewat .chess <langkah> saat game jalan ----
+		const playChessMove = async inputText => {
+			const s = getSession(chatJid, 'chess');
+			if (!s || sender !== s.player) return false;
+			const mv = Chess.findMove(s.state, inputText);
+			if (!mv) return null;
+			s.state = Chess.applyMove(s.state, mv);
+			s.startedAt = Date.now();
+			let status = Chess.gameStatus(s.state);
+			if (!status.over) {
+				const aiMv = Chess.aiChoose(s.state);
+				if (aiMv) { s.state = Chess.applyMove(s.state, aiMv); s.startedAt = Date.now(); }
+				status = Chess.gameStatus(s.state);
+			}
+			if (status.over) {
+				clearSession(chatJid, 'chess');
+				const note = status.result === '1-0' ? '🏆 *KAMU MENANG!*' : status.result === '0-1' ? '🤖 *AI MENANG!* Coba lagi ya.' : '🤝 *SERI!*';
+				await sendChessBoard(sock, chatJid, s.state, s.name, note, msg);
+				return true;
+			}
+			await sendChessBoard(sock, chatJid, s.state, s.name, '', msg);
+			return true;
+		};
+		if (cmd === 'chess' || cmd === 'catur') {
+			const s = getSession(chatJid, 'chess');
+			if (s) {
+				if (!args) return reply('⚠️ Lagi ada game catur jalan di chat ini. Ketik langkahmu (mis. `e4`), atau `.stopgame` buat akhiri.');
+				if (sender !== s.player) return reply('⚠️ Game catur ini bukan punyamu — yang main lagi fokus ♟️');
+				const r = await playChessMove(args);
+				if (r === null) return reply('⚠️ Langkah itu tidak sah. Contoh format: `e4`, `Nf3`, `e2e4`, `exd5`, `O-O`.');
+				return;
+			}
 		}
 
 		// ---- Mulai game ----
@@ -176,6 +249,11 @@ export default {
 				const item = pick(BANKS[cmd]);
 				setSession(chatJid, cmd, { answer: item.a, by: sender });
 				return reply(`${cmd === 'asahotak' ? '🧠 *ASAH OTAK*' : '🤣 *CAK LONTONG*'}\n\n${item.q}\n\nKetik jawabanmu di chat ini. ⏱️ 3 menit!`);
+			}
+			if (cmd === 'chess' || cmd === 'catur') {
+				const st = Chess.newGame();
+				setSession(chatJid, 'chess', { state: st, player: sender, name });
+				return sendChessBoard(sock, chatJid, st, name, '♟️ *Game dimulai!* Kamu pegang *Putih* — jalan duluan ya.', msg);
 			}
 			if (cmd === 'tictactoe') {
 				const c = msg.message?.extendedTextMessage?.contextInfo;
@@ -209,6 +287,18 @@ export default {
 			ttt.startedAt = Date.now();
 			const nextJid = ttt.players[ttt.turn];
 			return sock.sendMessage(chatJid, { text: `${tttBoard(ttt.board)}\n\nGiliran ${ttt.turn === 'X' ? '❌' : '⭕'} @${nextJid.split('@')[0]} — ketik angka 1-9.`, mentions: [nextJid] });
+		}
+
+		// ---- Langkah catur (teks biasa) ----
+		const chessS = getSession(chatJid, 'chess');
+		if (chessS && !cmd && sender === chessS.player) {
+			const t = text.trim();
+			const looksMove = /^([a-h][1-8]){1,2}[qrbn]?$/i.test(t) || /^[KQRBN]?[a-h]?\d?x?[a-h][1-8](=[QRBN])?[+#]?$/i.test(t) || /^o-o(-o)?[+#]?$/i.test(t);
+			if (looksMove) {
+				const r = await playChessMove(t);
+				if (r === null) return reply('⚠️ Langkah itu tidak sah. Contoh format: `e4`, `Nf3`, `e2e4`, `exd5`, `O-O`.');
+				return;
+			}
 		}
 
 		// ---- Jawaban game teks/angka ----

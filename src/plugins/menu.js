@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 158\n` +
+		`┃ ⌨️ *Total Cmd :* 163\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -79,6 +79,9 @@ function menuText(cfg) {
 		`┃ • \`.promote\` \`.demote\` \`.kick\` \`.add\`\n` +
 		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
 		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
+		`┃ • \`.antispam on/off\` — spam chat\n` +
+		`┃ • \`.antispamsticker on/off\` — spam stiker\n` +
+		`┃ • \`.antispamfoto on/off\` — spam foto\n` +
 		`┃   ↳ _khusus admin grup / owner_\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -134,6 +137,7 @@ function menuText(cfg) {
 		`┃ • \`.math\` \`.tebakangka\` \`.tictactoe\`\n` +
 		`┃ • \`.tebakkata\` \`.susunkata\`\n` +
 		`┃ • \`.asahotak\` \`.caklontong\` \`.stopgame\`\n` +
+		`┃ • \`.chess\` — catur vs AI (gambar papan)\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🧰 *MENU TOOLS* 〕━━━⬣\n` +
