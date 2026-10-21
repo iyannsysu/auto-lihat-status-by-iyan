@@ -70,6 +70,9 @@ function stablePercent(key, max = 100) {
 	return (h % (max + 1));
 }
 
+const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
 const JODOH_PREDIKSI = [
 	'Bakal sering ngambek bareng, tapi baikan sebelum tidur.',
 	'Satu hobi kecil bakal jadi alasan ketemu terus.',
@@ -174,8 +177,8 @@ export default {
 			return reply(`📏 *SEBERAPA ${q.toUpperCase()}*\n\n${bar}\nHasilnya: *${pct}%*\n${komentar}\n\n_(hasil tetap buat pertanyaan yang sama — jangan ngarep berubah 😆)_`);
 		}
 		if (cmd === 'kapan') {
-			const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-			const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+			const HARI = HARI_ID;
+			const BULAN = BULAN_ID;
 			const PENUTUP = [
 				'Catat tanggalnya, jangan sampai lupa 😌',
 				'Bintang-bintang sudah sepakat soal ini ✨',
@@ -209,6 +212,28 @@ export default {
 			const a = msg.pushName || 'Kamu';
 			const card = jodohCard(a, `@${digits(pick)}`, 'JODOHKU', digits(meJid), digits(pick));
 			return sock.sendMessage(chatJid, { text: card + '\n\n_(dipilih acak oleh Cupid Bot 🏹 — kurang cocok? panggil lagi aja)_', mentions: [pick] }, { quoted: msg });
+		}
+		if (cmd === 'rating' || cmd === 'penilaian') {
+			if (!chatJid.endsWith('@g.us')) return reply('Command `.rating` cuma bisa di grup — bot menilai semua anggota grupnya ⭐');
+			let meta;
+			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
+			const members = (meta?.participants || []).map(p => p.id).filter(Boolean);
+			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
+			const digits = j => String(j || '').split('@')[0].split(':')[0];
+			// Rating stabil per anggota per grup (6-10) — hasil tidak berubah tiap dipanggil.
+			const rows = members
+				.map(jid => ({ jid, rating: 6 + stablePercent(`rating|${chatJid}|${digits(jid)}`, 4) }))
+				.sort((a, b) => b.rating - a.rating || digits(a.jid).localeCompare(digits(b.jid)));
+			const shown = rows.slice(0, 10);
+			const now = new Date();
+			const tanggal = `${HARI_ID[now.getDay()]}, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
+			const list = shown.map((r, i) => `${i + 1}. @${digits(r.jid)}\n   Rating Keaktifan: *${r.rating}/10*\n   Total Suara: 1`).join('\n');
+			const sisa = rows.length - shown.length;
+			return sock.sendMessage(
+				chatJid,
+				{ text: `⭐ *PENILAIAN ANGGOTA GRUP*\n\n📋 ${meta.subject || 'Grup'}\n🗓️ ${tanggal}\n👥 Total Anggota: ${members.length}\n\n${list}${sisa > 0 ? `\n\n...dan ${sisa} anggota lainnya` : ''}\n\n_Penilaian versi bot — buat seru-seruan aja 😆_`, mentions: shown.map(r => r.jid) },
+				{ quoted: msg }
+			);
 		}
 		if (cmd === 'cantik' || cmd === 'ganteng') {
 			if (!chatJid.endsWith('@g.us')) return reply(`Command \`.${cmd}\` cuma bisa di grup — bot milih orangnya acak dari anggota grup 😄`);
