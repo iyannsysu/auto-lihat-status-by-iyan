@@ -53,7 +53,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 163\n` +
+		`┃ ⌨️ *Total Cmd :* 165\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -62,6 +62,8 @@ function menuText(cfg) {
 		`┃ • \`.welcome on\` / \`.welcome off\`\n` +
 		`┃   ↳ Sambutan Grup : *${onOff(cfg.welcome)}*\n` +
 		`┃     (foto anime: datang 👋 / pergi 🍂)\n` +
+		`┃ • \`.simulatewelcome\` \`.simulategoodbye\`\n` +
+		`┃   ↳ preview sambutan (owner/admin grup)\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 💤 *MENU AFK* 〕━━━⬣\n` +

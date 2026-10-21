@@ -151,12 +151,25 @@ function chessCaption(st, playerName, note = '') {
 
 async function sendChessBoard(sock, chatJid, st, playerName, note = '', quoted) {
 	const caption = chessCaption(st, playerName, note);
+	let png = null;
 	try {
-		const png = await Chess.renderBoardPng(st);
-		return sock.sendMessage(chatJid, { image: png, caption }, quoted ? { quoted } : {});
-	} catch {
-		return sock.sendMessage(chatJid, { text: `${caption}\n\n\`\`\`\n${Chess.boardText(st)}\n\`\`\`` }, quoted ? { quoted } : {});
+		png = await Chess.renderBoardPng(st);
+	} catch (err) {
+		console.error('[auto-lihat-status] render papan catur gagal:', err?.message || err);
 	}
+	if (png) {
+		try {
+			return await sock.sendMessage(chatJid, { image: png, caption }, quoted ? { quoted } : {});
+		} catch (err) {
+			console.error('[auto-lihat-status] kirim gambar catur gagal, coba tanpa quote:', err?.message || err);
+			try {
+				return await sock.sendMessage(chatJid, { image: png, caption });
+			} catch (err2) {
+				console.error('[auto-lihat-status] kirim gambar catur gagal total:', err2?.message || err2);
+			}
+		}
+	}
+	return sock.sendMessage(chatJid, { text: `${caption}\n\n\`\`\`\n${Chess.boardText(st)}\n\`\`\`` }, quoted ? { quoted } : {});
 }
 const ANSWER_GAMES = ['math', 'tebakkata', 'susunkata', 'tebakangka', 'asahotak', 'caklontong'];
 

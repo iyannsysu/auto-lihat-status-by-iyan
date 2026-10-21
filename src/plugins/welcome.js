@@ -39,6 +39,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { jidNormalizedUser } from 'baileys';
 import { readConfig, writeConfig, getMessageText } from '../helper/config.js';
 
 const WELCOME_IMAGE = path.join(process.cwd(), 'assets', 'welcome.jpg');
@@ -84,9 +85,48 @@ export default {
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
-		if (!msg.key.fromMe) return;
 		const text = getMessageText(msg);
 		if (!text) return;
+
+		// ---------- Simulasi sambutan (owner / admin grup) ----------
+		const sim = text.match(/^[./!](simulate|simulasi)(welcome|goodbye)\b/i);
+		if (sim) {
+			const jid = msg.key.remoteJid;
+			const replyText = async t => sock.sendMessage(jid, { text: t }, { quoted: msg });
+			if (!jid?.endsWith('@g.us')) return replyText('Simulasi sambutan cuma bisa di grup ya 🧪');
+			// Boleh: owner (akun bot) atau admin grup ini.
+			let allowed = !!msg.key.fromMe;
+			const sender = jidNormalizedUser(msg.key.participant || msg.key.remoteJid || '');
+			if (!allowed) {
+				try {
+					const meta = await sock.groupMetadata(jid);
+					const p = (meta.participants || []).find(x => jidNormalizedUser(x.id) === sender || jidNormalizedUser(x.phoneNumber || '') === sender);
+					allowed = !!(p && (p.admin === 'admin' || p.admin === 'superadmin'));
+				} catch { /* tidak boleh */ }
+			}
+			if (!allowed) return replyText('⚠️ Simulasi sambutan hanya buat owner / admin grup.');
+			// Target: yang di-mention / di-reply, kalau tidak ya pengirim sendiri.
+			const c = msg.message?.extendedTextMessage?.contextInfo;
+			const target = c?.mentionedJid?.[0] || c?.participant || sender;
+			// Nomor tampilan: pecahkan LID jadi nomor asli bila bisa.
+			let num = String(target).split('@')[0].split(':')[0];
+			if (String(target).endsWith('@lid')) {
+				try {
+					const pn = await sock?.signalRepository?.lidMapping?.getPNForLID?.(target);
+					if (pn) num = String(pn).split('@')[0];
+				} catch { /* abaikan */ }
+			}
+			let groupName = 'grup ini';
+			try {
+				const meta = await sock.groupMetadata(jid);
+				if (meta?.subject) groupName = meta.subject;
+			} catch {}
+			const isWelcome = sim[2].toLowerCase() === 'welcome';
+			const caption = `🧪 *SIMULASI* — ini cuma preview ya, bukan beneran\n\n` + (isWelcome ? welcomeCaption(num, groupName) : goodbyeCaption(num, groupName));
+			return sendSambutan(sock, jid, target, isWelcome ? WELCOME_IMAGE : GOODBYE_IMAGE, caption);
+		}
+
+		if (!msg.key.fromMe) return;
 		const m = text.match(/^[./!](welcome|sambutan)\b(.*)$/is);
 		if (!m) return;
 		const arg = (m[2] || '').trim().toLowerCase();

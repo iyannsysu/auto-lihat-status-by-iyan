@@ -32,9 +32,11 @@
  */
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import fs from 'fs';
 
 const execFileAsync = promisify(execFile);
 const FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
+const FFMPEG = ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', 'ffmpeg'].find(p => p === 'ffmpeg' || fs.existsSync(p));
 
 const VAL = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 0 };
 const GLYPH = {
@@ -382,7 +384,7 @@ export async function renderBoardPng(st) {
 		filters.push(`drawtext=fontfile=${FONT}:text='${glyph}':fontsize=62:${style}:x=${x}+(${SQ}-tw)/2:y=${y}+(${SQ}-th)/2`);
 	}
 	const { stdout } = await execFileAsync(
-		'ffmpeg',
+		FFMPEG,
 		['-y', '-v', 'error', '-f', 'lavfi', '-i', filters.join(','), '-frames:v', '1', '-f', 'image2pipe', '-vcodec', 'png', '-'],
 		{ maxBuffer: 16 * 1024 * 1024, encoding: 'buffer' }
 	);
