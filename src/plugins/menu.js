@@ -54,7 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 79\n` +
+		`┃ ⌨️ *Total Cmd :* 86\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -100,6 +100,13 @@ function menuText(cfg) {
 		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
 		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
 		`┃   ↳ _khusus admin grup / owner_\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 👤 *MENU PROFIL* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.profile\` — lihat profil (nama/gender/umur/bio)\n` +
+		`┃ • \`.setname\` \`.setgender\` \`.setage\` \`.setbio\`\n` +
+		`┃ • \`.getpp\` — foto profil WA seseorang\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🎮 *MENU GAME* 〕━━━⬣\n` +
