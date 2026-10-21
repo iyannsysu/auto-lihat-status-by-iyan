@@ -54,7 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 46\n` +
+		`┃ ⌨️ *Total Cmd :* 70\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -90,6 +90,16 @@ function menuText(cfg) {
 		`┃   ↳ nama + alasan + waktu tercatat\n` +
 		`┃ • \`.afk off\` — matikan AFK\n` +
 		`┃ • \`.afk cek\` — daftar yang sedang AFK\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🛡️ *MENU GRUP ADMIN* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.tagall\` \`.hidetag\` \`.groupinfo\`\n` +
+		`┃ • \`.open\` \`.close\` \`.linkgc\` \`.revoke\`\n` +
+		`┃ • \`.promote\` \`.demote\` \`.kick\` \`.add\`\n` +
+		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
+		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
+		`┃   ↳ _khusus admin grup / owner_\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🧰 *MENU TOOLS* 〕━━━⬣\n` +

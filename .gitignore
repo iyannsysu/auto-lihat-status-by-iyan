@@ -5,3 +5,4 @@ bot.lock
 bot-sup.pid
 node_modules/
 afk.json
+grup.json
