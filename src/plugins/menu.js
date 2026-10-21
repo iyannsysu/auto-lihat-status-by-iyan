@@ -54,6 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
+		`┃ ⌨️ *Total Cmd :* 46\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -89,6 +90,27 @@ function menuText(cfg) {
 		`┃   ↳ nama + alasan + waktu tercatat\n` +
 		`┃ • \`.afk off\` — matikan AFK\n` +
 		`┃ • \`.afk cek\` — daftar yang sedang AFK\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🧰 *MENU TOOLS* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.b64\` \`.b32\` \`.hex\` \`.binary\`\n` +
+		`┃ • \`.octal\` \`.ascii85\` (encode/decode)\n` +
+		`┃ • \`.morse\` \`.rot13\` \`.atbash\`\n` +
+		`┃ • \`.reverse\` \`.upper\` \`.lower\`\n` +
+		`┃ • \`.calculator\` \`.roman\` \`.lorem\` \`.readmore\`\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🎉 *MENU FUN* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.dadu\` \`.koin\` \`.suit\` \`.cek\`\n` +
+		`┃ • \`.fact\` \`.roast\` \`.ship\` \`.reaction\`\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 📋 *MENU GENERAL* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.ping\` \`.runtime\` \`.owner\`\n` +
+		`┃ • \`.about\` \`.sc\`\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 ⚙️ *PENGATURAN* 〕━━━⬣\n` +
