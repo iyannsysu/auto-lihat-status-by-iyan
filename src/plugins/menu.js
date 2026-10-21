@@ -54,7 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 106\n` +
+		`┃ ⌨️ *Total Cmd :* 119\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -100,6 +100,20 @@ function menuText(cfg) {
 		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
 		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
 		`┃   ↳ _khusus admin grup / owner_\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🤖 *MENU AI* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.ai <tanya>\` — chat AI (ingat konteks)\n` +
+		`┃ • \`.imagine <deskripsi>\` — buat gambar AI\n` +
+		`┃ • \`.resetai\` — hapus ingatan AI\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 🎌 *MENU ANIMANGA* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.anime <judul>\` \`.animedetail <slug>\`\n` +
+		`┃ • \`.samehadaku\` \`.kuramanime\` — cari anime\n` +
+		`┃ • \`.jadwalanime\` \`.ongoing\`\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 🔎 *MENU SEARCH & INFO* 〕━━━⬣\n` +
