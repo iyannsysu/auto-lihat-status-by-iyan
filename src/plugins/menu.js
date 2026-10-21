@@ -54,7 +54,7 @@ function menuText(cfg) {
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
 		`┃ 🤖 *Mode :* ${botMode}\n` +
-		`┃ ⌨️ *Total Cmd :* 86\n` +
+		`┃ ⌨️ *Total Cmd :* 95\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -100,6 +100,14 @@ function menuText(cfg) {
 		`┃ • \`.setsubject\` \`.setdesc\` \`.delete\`\n` +
 		`┃ • \`.antilink on/off\` \`.warn\` \`.listadmin\`\n` +
 		`┃   ↳ _khusus admin grup / owner_\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 ⬇️ *MENU DOWNLOADER* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.tiktok <link>\` — video TT tanpa watermark\n` +
+		`┃ • \`.tiktokmp3 <link>\` — audio dari TikTok\n` +
+		`┃ • \`.facebook <link>\` \`.gdrive <link>\`\n` +
+		`┃ • \`.capcut <link>\`\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`╭━━━〔 👤 *MENU PROFIL* 〕━━━⬣\n` +
