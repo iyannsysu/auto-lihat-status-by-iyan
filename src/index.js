@@ -38,8 +38,9 @@
  *  src/plugins/_loader.js    <- pemuat plugin
  *  src/plugins/autoread.js   <- fitur: auto-lihat status + SW grup
  *  src/plugins/autoreact.js  <- fitur: auto-react status (emoji / teks)
- *  src/plugins/menu.js       <- fitur: .menu foto bergaya bot MD
- *  assets/menu.jpg           <- foto banner untuk .menu
+ *  src/plugins/menu.js       <- fitur: .menu foto bergaya bot MD + .mode
+ *  src/plugins/welcome.js    <- fitur: sambutan grup (foto anime)
+ *  assets/                   <- foto: menu.jpg, welcome.jpg, goodbye.jpg
  *  scripts/make-plugin.js    <- pembuat plugin baru
  */
 
@@ -127,7 +128,8 @@ async function main() {
 
 		if (connection === 'open') {
 			console.log(`[auto-lihat-status] connected ✅ ${sock.user?.id || ''} (${sock.user?.name || ''})`);
-			console.log(`[auto-lihat-status] autoread: ${readConfig().autoread ? 'ON' : 'OFF'} (ubah di config.json, tanpa restart)`);
+			const cfg0 = readConfig();
+			console.log(`[auto-lihat-status] mode: ${cfg0.mode.toUpperCase()} | autoread: ${cfg0.autoread ? 'ON' : 'OFF'} | swgrup: ${cfg0.swgrup ? 'ON' : 'OFF'} | welcome: ${cfg0.welcome ? 'ON' : 'OFF'} (ubah di config.json / command, tanpa restart)`);
 		}
 
 		if (connection === 'close') {
@@ -169,6 +171,20 @@ async function main() {
 					// 1 plugin error jangan matikan plugin lain / bot.
 					console.error(`[auto-lihat-status] plugin ${plugin.name} error:`, err?.message || err);
 				}
+			}
+		}
+	});
+
+	// Event anggota grup masuk / keluar — diteruskan ke plugin yang punya
+	// hook onGroupParticipants (saat ini: welcome.js untuk sambutan grup).
+	sock.ev.on('group-participants.update', async event => {
+		const config = readConfig();
+		for (const plugin of plugins) {
+			if (typeof plugin.onGroupParticipants !== 'function') continue;
+			try {
+				await plugin.onGroupParticipants({ sock, event, config });
+			} catch (err) {
+				console.error(`[auto-lihat-status] plugin ${plugin.name} (grup) error:`, err?.message || err);
 			}
 		}
 	});

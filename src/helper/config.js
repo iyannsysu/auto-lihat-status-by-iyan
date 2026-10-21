@@ -26,8 +26,10 @@
  *
  * config.json:
  * {
+ *   "mode": "self",              // "self" = command hanya owner | "public" = .menu bisa dipakai semua orang
  *   "autoread": true,            // auto-lihat status
  *   "swgrup": true,              // SW grup (status yang diposting ke grup) ikut diproses
+ *   "welcome": true,             // sambutan anggota grup masuk / keluar (foto anime)
  *   "autoreact": true,           // auto-react status
  *   "react_mode": "emoji",       // "emoji" | "teks"
  *   "emoji_pool": ["❤️","😍","🔥","👍","😮","🥰","💯","👏","😎","🎉"],
@@ -41,8 +43,10 @@ import path from 'path';
 const CONFIG_FILE = path.join(process.cwd(), 'config.json');
 
 const DEFAULTS = {
+	mode: 'self',
 	autoread: true,
 	swgrup: true,
+	welcome: true,
 	autoreact: true,
 	react_mode: 'emoji',
 	emoji_pool: ['❤️', '😍', '🔥', '👍', '😮', '🥰', '💯', '👏', '😎', '🎉'],
@@ -66,8 +70,10 @@ export function writeConfig(patch) {
 }
 
 function normalize(cfg) {
+	if (cfg.mode !== 'public' && cfg.mode !== 'self') cfg.mode = 'self';
 	if (typeof cfg.autoread !== 'boolean') cfg.autoread = true;
 	if (typeof cfg.swgrup !== 'boolean') cfg.swgrup = true;
+	if (typeof cfg.welcome !== 'boolean') cfg.welcome = true;
 	if (typeof cfg.autoreact !== 'boolean') cfg.autoreact = true;
 	if (cfg.react_mode !== 'teks' && cfg.react_mode !== 'emoji') cfg.react_mode = 'emoji';
 	if (!Array.isArray(cfg.emoji_pool) || !cfg.emoji_pool.length) cfg.emoji_pool = [...DEFAULTS.emoji_pool];

@@ -1,6 +1,8 @@
 {
+  "mode": "public",
   "autoread": true,
   "swgrup": true,
+  "welcome": true,
   "autoreact": true,
   "react_mode": "teks",
   "emoji_pool": [

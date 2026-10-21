@@ -21,10 +21,17 @@
 ///
 'use strict';
 /**
- * plugins/menu.js — MENU UTAMA bergaya bot MD (foto + caption).
+ * plugins/menu.js — MENU UTAMA bergaya bot MD (foto + caption) + MODE bot.
  *
- * Command (hanya dari owner / fromMe):
- *   .menu / .help / .bantuan -> foto banner + daftar perintah profesional
+ * Command:
+ *   .menu / .help / .bantuan -> foto banner + daftar perintah profesional.
+ *                               Mode PUBLIC: bisa dipakai SEMUA orang.
+ *                               Mode SELF: hanya owner (fromMe).
+ *   .mode public / .mode self -> ganti mode bot (HANYA owner).
+ *   .mode cek                  -> lihat mode saat ini (HANYA owner).
+ *
+ * Command PENGATURAN (.read, .swgrup, .react, .welcome, .mode) selalu
+ * khusus owner di mode apa pun — mode public hanya membuka .menu.
  *
  * Foto diambil dari assets/menu.jpg. Kalau file-nya tidak ada / gagal
  * dibaca, menu tetap terkirim sebagai teks saja (tidak error).
@@ -32,7 +39,7 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { readConfig, getMessageText } from '../helper/config.js';
+import { readConfig, writeConfig, getMessageText } from '../helper/config.js';
 
 const MENU_IMAGE = path.join(process.cwd(), 'assets', 'menu.jpg');
 
@@ -40,12 +47,13 @@ const onOff = v => (v ? 'ON 🟢' : 'OFF 🔴');
 
 function menuText(cfg) {
 	const mode = cfg.react_mode === 'teks' ? 'TEKS 📝' : 'EMOJI 😍';
+	const botMode = cfg.mode === 'public' ? 'PUBLIC 🌐 (menu untuk semua)' : 'SELF 🔒 (khusus owner)';
 	return (
 		`╭━━━〔 👁️ *AUTO LIHAT STATUS* 〕━━━⬣\n` +
 		`┃ \n` +
 		`┃ ⚡ Bot WhatsApp super-ringan\n` +
 		`┃ 👑 *Creator :* Iyan\n` +
-		`┃ 🤖 *Mode :* Self-Bot (khusus owner)\n` +
+		`┃ 🤖 *Mode :* ${botMode}\n` +
 		`┃ 📡 *Status :* Online\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
@@ -68,6 +76,19 @@ function menuText(cfg) {
 		`┃ • \`.react cek\` — lihat setting react\n` +
 		`┃ \n` +
 		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 👥 *MENU GRUP* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.welcome on\` / \`.welcome off\`\n` +
+		`┃   ↳ Sambutan Grup : *${onOff(cfg.welcome)}*\n` +
+		`┃     (foto anime: datang 👋 / pergi 🍂)\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
+		`╭━━━〔 ⚙️ *PENGATURAN* 〕━━━⬣\n` +
+		`┃ \n` +
+		`┃ • \`.mode public\` / \`.mode self\` — ganti mode bot\n` +
+		`┃ • \`.mode cek\` — lihat mode saat ini\n` +
+		`┃ \n` +
+		`╰━━━━━━━━━━━━━━━━━━⬣\n\n` +
 		`_© 2026 Iyan — script ini *dilarang diperjualbelikan*._\n` +
 		`_Ada yang menjualnya? Lapor ke WA : +6282161429908_`
 	);
@@ -75,17 +96,37 @@ function menuText(cfg) {
 
 export default {
 	name: 'menu',
-	desc: 'Menu utama bergaya bot MD: foto banner + daftar perintah. Command: .menu / .help.',
+	desc: 'Menu utama bergaya bot MD: foto banner + daftar perintah. Command: .menu / .help (public: semua orang), .mode (owner).',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
-		if (!msg.key.fromMe) return;
 		const text = getMessageText(msg);
 		if (!text) return;
-		if (!/^[./!](menu|help|bantuan)\b/i.test(text)) return;
-
-		const caption = menuText(readConfig());
+		const cfg = readConfig();
 		const jid = msg.key.remoteJid;
+
+		// .mode — HANYA owner, di mode apa pun.
+		const modeMatch = text.match(/^[./!](mode)\b(.*)$/is);
+		if (modeMatch) {
+			if (!msg.key.fromMe) return;
+			const arg = (modeMatch[2] || '').trim().toLowerCase();
+			if (arg === 'public' || arg === 'publik') {
+				writeConfig({ mode: 'public' });
+				await sock.sendMessage(jid, { text: 'Mode bot sekarang *PUBLIC 🌐*\nSemua orang bisa pakai `.menu`. Command pengaturan tetap khusus owner.' }, { quoted: msg });
+			} else if (arg === 'self' || arg === 'sendiri') {
+				writeConfig({ mode: 'self' });
+				await sock.sendMessage(jid, { text: 'Mode bot sekarang *SELF 🔒*\nSemua command hanya untuk owner.' }, { quoted: msg });
+			} else {
+				await sock.sendMessage(jid, { text: `Mode saat ini: *${cfg.mode === 'public' ? 'PUBLIC 🌐' : 'SELF 🔒'}*\n\nGanti: \`.mode public\` / \`.mode self\`` }, { quoted: msg });
+			}
+			return;
+		}
+
+		// .menu / .help / .bantuan — owner selalu bisa; orang lain hanya di mode public.
+		if (!/^[./!](menu|help|bantuan)\b/i.test(text)) return;
+		if (!msg.key.fromMe && cfg.mode !== 'public') return;
+
+		const caption = menuText(cfg);
 		try {
 			const image = fs.readFileSync(MENU_IMAGE);
 			await sock.sendMessage(jid, { image, caption }, { quoted: msg });
