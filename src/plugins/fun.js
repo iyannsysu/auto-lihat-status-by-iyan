@@ -72,7 +72,7 @@ function stablePercent(key, max = 100) {
 
 export default {
 	name: 'fun',
-	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, reaction.',
+	desc: 'Fun: dadu, koin, suit, cek, fact, roast, ship, jodoh, cantik/ganteng acak grup, reaction.',
 
 	async onMessage(ctx) {
 		const { sock, msg } = ctx;
@@ -151,6 +151,25 @@ export default {
 			const verdict = pct >= 90 ? '💍 *JODOH SEJATI!*' : pct >= 75 ? '💘 *Serasi banget!*' : pct >= 55 ? '💕 *Cocok, harapan besar.*' : pct >= 35 ? '💛 *Bisa, tapi butuh usaha & komunikasi.*' : pct >= 20 ? '💔 *Berat... lebih cocok jadi teman cerita.*' : '🧊 *Mending temenan aja dulu.*';
 			const prediksi = PREDIKSI[stablePercent('pred|' + key, PREDIKSI.length - 1)];
 			return reply(`💘 *CEK JODOH*\n\n${a} ❤️ ${b}\n${bar}\nKecocokan: *${pct}%*\n${verdict}\n\n🔮 ${prediksi}\n\n_(hiburan ya — jodoh beneran tetap di tangan Tuhan 😇)_`);
+		}
+		if (cmd === 'cantik' || cmd === 'ganteng') {
+			if (!chatJid.endsWith('@g.us')) return reply(`Command \`.${cmd}\` cuma bisa di grup — bot milih orangnya acak dari anggota grup 😄`);
+			let meta;
+			try { meta = await sock.groupMetadata(chatJid); } catch { /* di bawah */ }
+			const members = (meta?.participants || []).map(p => p.id).filter(Boolean);
+			if (!members.length) return reply('Gagal membaca anggota grup, coba lagi ya.');
+			const pick = members[Math.floor(Math.random() * members.length)];
+			const pct = 60 + Math.floor(Math.random() * 41); // 60-100, namanya juga pemenang
+			const crown = cmd === 'cantik' ? '👑' : '🤴';
+			const gelar = cmd === 'cantik' ? 'TERCANTIK' : 'TERGANTENG';
+			const komen = cmd === 'cantik'
+				? ['Cantiknya nggak ada obat 😍', 'Auto jadi pusat perhatian grup ✨', 'Yang lain minggir dulu yaa 💅'][Math.floor(Math.random() * 3)]
+				: ['Gantengnya bikin salah fokus 😎', 'Auto jadi idaman grup 🔥', 'Yang lain minggir dulu yaa ✌️'][Math.floor(Math.random() * 3)];
+			return sock.sendMessage(
+				chatJid,
+				{ text: `${crown} *PEMILIHAN ${gelar} GRUP* ${crown}\n\nDan pemenangnya adalah...\n\n🎉 @${pick.split('@')[0]} 🎉\nKadar ${cmd}: *${pct}%*\n${komen}\n\n_(dipilih acak oleh bot — yang belum kepilih jangan iri ya 😆)_`, mentions: [pick] },
+				{ quoted: msg }
+			);
 		}
 		if (cmd === 'reaction') {
 			const quoted = msg.message?.extendedTextMessage?.contextInfo;
